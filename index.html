@@ -6,20 +6,61 @@
 <title>X-Motors Delivery Planning</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyB2n1ANZYTbBInwR6Lev6GKxmKPPrhI2aM",
-  authDomain: "deliver-management.firebaseapp.com",
-  projectId: "deliver-management",
-  storageBucket: "deliver-management.firebasestorage.app",
-  messagingSenderId: "1003676507865",
-  appId: "1:1003676507865:web:50a65ff995630ee75a28c8",
-  measurementId: "G-Q7PV48FQ9Z"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Firebase SDK loader with fallback chain
+(function(){
+  const SOURCES = [
+    'https://cdn.jsdelivr.net/npm/firebase@10.12.5/',
+    'https://unpkg.com/firebase@10.12.5/',
+    'https://www.gstatic.com/firebasejs/10.12.5/'
+  ];
+  const FILES = ['firebase-app-compat.js', 'firebase-firestore-compat.js'];
+  
+  function loadOne(file, cdnIdx, done){
+    if(cdnIdx >= SOURCES.length){ done(new Error('All CDNs failed for ' + file)); return; }
+    const s = document.createElement('script');
+    s.src = SOURCES[cdnIdx] + file;
+    s.async = false; // preserve order
+    s.onload = () => { console.log('[Firebase] Loaded ' + file + ' from CDN #' + (cdnIdx+1)); done(null); };
+    s.onerror = () => { console.warn('[Firebase] CDN #' + (cdnIdx+1) + ' failed for ' + file + ', trying next...'); s.remove(); loadOne(file, cdnIdx+1, done); };
+    document.head.appendChild(s);
+  }
+  function loadAll(idx, done){
+    if(idx >= FILES.length){ done(); return; }
+    loadOne(FILES[idx], 0, (err) => {
+      if(err){ console.error('[Firebase] ' + err.message); done(err); return; }
+      loadAll(idx+1, done);
+    });
+  }
+  
+  window._firebaseReady = new Promise((resolve, reject) => {
+    loadAll(0, (err) => {
+      if(err){
+        document.body && document.body.insertAdjacentHTML('afterbegin',
+          '<div style="background:#fae8e8;color:#952828;padding:12px 16px;font-family:sans-serif;border-bottom:1px solid #e8adad">' +
+          '⚠ Firebase SDK could not load from any CDN. Cloud sync disabled. Check internet/firewall.' +
+          '</div>');
+        reject(err);
+      } else {
+        try{
+          firebase.initializeApp({
+            apiKey: "AIzaSyB2n1ANZYTbBInwR6Lev6GKxmKPPrhI2aM",
+            authDomain: "deliver-management.firebaseapp.com",
+            projectId: "deliver-management",
+            storageBucket: "deliver-management.firebasestorage.app",
+            messagingSenderId: "1003676507865",
+            appId: "1:1003676507865:web:50a65ff995630ee75a28c8",
+            measurementId: "G-Q7PV48FQ9Z"
+          });
+          window.db = firebase.firestore();
+          console.log('[Firebase] Initialized, project:', firebase.app().options.projectId);
+          resolve();
+        }catch(e){ reject(e); }
+      }
+    });
+  });
+})();
+
 let _cloudUnsub = null;
 let _cloudSaving = false;
 let _cloudLoading = false;
@@ -1133,23 +1174,21 @@ setInterval(updateUrgency,60000);
 <script>
 // FORCE_FIREBASE_SYNC_INIT
 (function(){
-  function bootCloudSync(){
+  async function bootCloudSync(){
     try{
+      const el=document.getElementById('sync-lbl');
+      if(el){el.textContent='Sync: loading Firebase SDK...';el.style.color='var(--muted)'}
+      // Wait for Firebase async loader to complete
+      await window._firebaseReady;
       if(typeof firebase === 'undefined' || !firebase.firestore){
-        console.error('[Sync] Firebase SDK not loaded');
-        const el=document.getElementById('sync-lbl');
-        if(el){
-          el.textContent='Sync: Firebase SDK failed';
-          el.style.color='var(--err)';
-          el.style.borderColor='#e8adad';
-        }
+        console.error('[Sync] Firebase SDK not loaded after promise resolved');
+        if(el){el.textContent='Sync: Firebase SDK failed';el.style.color='var(--err)'}
         return;
       }
       console.log('[Sync] Firebase loaded, project:', firebase.app().options.projectId);
       if(typeof setSyncStatus === 'function') setSyncStatus('Sync: connecting...','');
       if(typeof subscribePlan === 'function'){
         subscribePlan();
-        // Watchdog: if listener doesn't fire within 10s, warn
         setTimeout(function(){
           if(_syncStats.snapshots===0){
             console.warn('[Sync] No snapshots received after 10s — check Firestore Rules');
@@ -1157,29 +1196,22 @@ setInterval(updateUrgency,60000);
           }
         },10000);
       }else{
-        const el=document.getElementById('sync-lbl');
-        if(el){
-          el.textContent='Sync: script not ready';
-          el.style.color='var(--err)';
-        }
+        if(el){el.textContent='Sync: script not ready';el.style.color='var(--err)'}
         console.error('subscribePlan function not found');
       }
     }catch(e){
       const el=document.getElementById('sync-lbl');
-      if(el){
-        el.textContent='Sync: init error';
-        el.style.color='var(--err)';
-      }
+      if(el){el.textContent='Sync: SDK load failed';el.style.color='var(--err)'}
       console.error('[Sync] Init error:', e);
     }
   }
 
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', function(){
-      setTimeout(bootCloudSync, 300);
+      setTimeout(bootCloudSync, 100);
     });
   }else{
-    setTimeout(bootCloudSync, 300);
+    setTimeout(bootCloudSync, 100);
   }
 })();
 </script>
