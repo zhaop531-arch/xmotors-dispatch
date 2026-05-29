@@ -334,13 +334,88 @@ tbody tr:hover td{background:#fafaf8}
   .hist-box{font-size:11px}
 }
 
+
+/* v17 Layout Sidebar */
+.app-sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--card);
+  border-right:1px solid var(--bd);z-index:180;padding:16px 14px;overflow:auto;
+  box-shadow:4px 0 18px rgba(0,0,0,.04)
+}
+.side-brand{font-size:15px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.side-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+.side-section{border-top:1px solid var(--bd);padding-top:12px;margin-top:12px}
+.side-title{font-size:10px;color:var(--hint);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.side-stack{display:flex;flex-direction:column;gap:8px}
+.side-stack .fi{width:100%;display:block}
+.side-stack .fi span{display:block;margin-bottom:3px;font-size:11px;color:var(--muted)}
+.side-stack .fi input,.side-stack .fi select{width:100%;min-height:34px}
+.side-stack .fr{width:100%;display:flex;flex-direction:column;gap:8px}
+.side-stack .fr button,.side-stack button{width:100%;justify-content:flex-start;min-height:36px}
+.side-nav button{width:100%;justify-content:flex-start;margin-bottom:7px;min-height:36px}
+.side-status{font-size:11px;color:var(--muted);line-height:1.5}
+.page{margin-left:260px;max-width:1180px}
+.hdr{padding:10px 14px}
+.hdr .logo{font-size:15px}
+.hdr-fields,.hdr .fr{display:none}
+.now-clock{margin-left:auto}
+.quick-nav,.quick-toggle,.mobile-drawer,.drawer-mask{display:none!important}
+.side-toggle-v17{display:none;position:fixed;right:14px;bottom:14px;z-index:301;border-radius:50%;width:50px;height:50px;align-items:center;justify-content:center;background:var(--accent);color:#fff;border:none;box-shadow:0 6px 22px rgba(0,0,0,.18)}
+.side-mask-v17{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:280}
+@media(max-width:900px){
+  .page{margin-left:0;max-width:100%}
+  .app-sidebar{left:-280px;transition:left .18s ease;z-index:300;box-shadow:8px 0 24px rgba(0,0,0,.18)}
+  .app-sidebar.open{left:0}
+  .side-mask-v17.open{display:block}
+  .side-toggle-v17{display:flex}
+  .hdr{padding-right:70px}
+  .hdr .logo{width:auto}
+  .now-clock{font-size:12px}
+}
+@media(min-width:901px){
+  .app-sidebar{display:block}
+}
+
 </style>
 </head>
 <body>
+
+<aside class="app-sidebar no-print" id="app-sidebar">
+  <div class="side-brand">X-Motors</div>
+  <div class="side-sub">Dispatch Control Tower</div>
+
+  <div class="side-section">
+    <div class="side-title">Planning Controls</div>
+    <div class="side-stack" id="side-controls"></div>
+  </div>
+
+  <div class="side-section">
+    <div class="side-title">Actions</div>
+    <div class="side-stack" id="side-actions"></div>
+  </div>
+
+  <div class="side-section">
+    <div class="side-title">Navigation</div>
+    <div class="side-nav">
+      <button onclick="scrollToSec('top');closeSideV17()">📊 Dashboard</button>
+      <button onclick="scrollToSec('exception-el');closeSideV17()">⚠ Exceptions</button>
+      <button onclick="scrollToSec('plan-section');closeSideV17()">🧭 Plan Result</button>
+      <button onclick="scrollToSec('orders-section');closeSideV17()">📝 Orders</button>
+      <button onclick="scrollToSec('map-section');closeSideV17()">🗺 Map</button>
+    </div>
+  </div>
+
+  <div class="side-section">
+    <div class="side-title">Sync</div>
+    <div class="side-status" id="side-sync-note">Use the sync pill in the header for cloud refresh details.</div>
+  </div>
+</aside>
+<div class="side-mask-v17 no-print" id="side-mask-v17" onclick="closeSideV17()"></div>
+<button class="side-toggle-v17 no-print" onclick="openSideV17()">☰</button>
+
 <div class="page">
 
 <div class="hdr no-print">
-  <span class="logo">X-Motors <span>Delivery Planning</span></span>
+  <span class="logo">X-Motors <span>Dispatch Control Tower</span></span>
   <div class="hdr-fields">
     <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="switchViewDate(this.value)"></div>
     <div class="fi"><span>Operator</span><input id="f-operator" placeholder="Name" onchange="S.operator=this.value;saveOperatorLocal();saveLocal()" title="Used for status history"></div>
@@ -415,7 +490,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v16 · Operator + Status History</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v17 · Sidebar Layout</div>
 </div>
 
 
@@ -1595,13 +1670,43 @@ function updateApiDot(){
   else{d.className='dot no';l.textContent='Maps API not configured';l.style.color='var(--hint)'}
 }
 
+
+function openSideV17(){
+  const s=document.getElementById('app-sidebar'),m=document.getElementById('side-mask-v17');
+  if(s)s.classList.add('open');
+  if(m)m.classList.add('open');
+}
+function closeSideV17(){
+  const s=document.getElementById('app-sidebar'),m=document.getElementById('side-mask-v17');
+  if(s)s.classList.remove('open');
+  if(m)m.classList.remove('open');
+}
+function setupSidebarV17(){
+  const controls=document.querySelector('.hdr-fields');
+  const actions=document.querySelector('.hdr > .fr');
+  const sideControls=document.getElementById('side-controls');
+  const sideActions=document.getElementById('side-actions');
+  if(controls&&sideControls&&!sideControls.contains(controls)){
+    sideControls.appendChild(controls);
+    controls.style.display='flex';
+    controls.style.flexDirection='column';
+    controls.style.gap='8px';
+  }
+  if(actions&&sideActions&&!sideActions.contains(actions)){
+    sideActions.appendChild(actions);
+    actions.style.display='flex';
+    actions.style.flexDirection='column';
+    actions.style.gap='8px';
+  }
+}
+
 // ── INIT ──
 load();
 document.getElementById('f-date').value=S.date||todayStr();
 const opEl=document.getElementById('f-operator'); if(opEl){S.operator=S.operator||localStorage.getItem('xmd_operator')||'';opEl.value=S.operator;}
 document.getElementById('f-traffic').value=S.trafficTime||'08:00';
 document.getElementById('f-depot').value=S.depotIdx;
-updateApiDot();renderTable();renderControlTower();updateClock();
+setupSidebarV17();updateApiDot();renderTable();renderControlTower();updateClock();
 setInterval(updateClock,30000);
 setInterval(updateUrgency,60000);
 </script>
