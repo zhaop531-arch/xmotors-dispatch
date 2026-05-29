@@ -415,16 +415,16 @@ function cloudSaveDebounced(){
 }
 async function cloudSaveNow(){
   if(_cloudLoading)return;
+  _cloudSaveTimer=null; // clear pending flag
   try{
     _cloudSaving=true;
     setSyncStatus('Cloud sync: saving','');
     await planDocRef().set(cloudPayload(),{merge:true});
-    setSyncStatus(_plan?'Cloud sync: plan saved':'Cloud sync: saved','ok');
-    // Hold flag briefly so echoed onSnapshot is skipped
-    setTimeout(()=>{_cloudSaving=false},800);
+    setSyncStatus(_plan?'Cloud sync: plan saved ✓':'Cloud sync: saved ✓','ok');
   }catch(e){
-    console.error(e);
-    setSyncStatus('Cloud sync: error','err');
+    console.error('Cloud save error:',e);
+    setSyncStatus('Cloud sync: save error','err');
+  }finally{
     _cloudSaving=false;
   }
 }
@@ -445,7 +445,11 @@ function clearPlanResults(){
 
 function applyRemoteData(data){
   if(!data)return;
-  if(_cloudSaving)return; // skip echoed snapshot from own write
+  // Don't overwrite local changes waiting to be saved
+  if(_cloudSaveTimer){
+    console.log('Skipping remote apply: local save pending');
+    return;
+  }
   _cloudLoading=true;
   S.depotIdx=data.depotIdx??S.depotIdx??0;
   S.trafficTime=data.trafficTime||S.trafficTime||'08:00';
@@ -491,8 +495,13 @@ function subscribePlan(){
           if((S.orders||[]).length)cloudSaveNow();
           return;
         }
+        // Skip local echoes (our own writes not yet confirmed by server)
+        if(snap.metadata.hasPendingWrites){
+          setSyncStatus('Cloud sync: sending...','');
+          return;
+        }
         applyRemoteData(snap.data());
-        setSyncStatus('Cloud sync: live','ok');
+        setSyncStatus('Cloud sync: live ✓','ok');
       }catch(renderErr){
         console.error('Cloud snapshot render error:', renderErr);
         setSyncStatus('Cloud sync: render error','err');
