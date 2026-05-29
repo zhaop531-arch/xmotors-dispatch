@@ -66,6 +66,10 @@ let _cloudSaving = false;
 let _cloudLoading = false;
 let _cloudSaveTimer = null;
 let _syncStats = {snapshots:0, saves:0, lastSnap:null, lastSave:null, lastError:null, listenerActive:false};
+let _lastRemoteVersion = 0;
+let _pollTimer = null;
+let _lastAppliedJson = '';
+
 function updateSyncBadge(){
   const el=document.getElementById('sync-lbl');
   if(!el)return;
@@ -331,7 +335,7 @@ cloudSaveNow()"></div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v8 · Real-time Sync + Depot Presets</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v9 · Auto Poll Sync</div>
 </div>
 
 <!-- Settings -->
@@ -498,14 +502,42 @@ function clearPlanResults(){
   const rt=document.getElementById('route-tools'); if(rt)rt.innerHTML='';
 }
 
+
+function getRemoteVersion(data){
+  if(!data)return 0;
+  if(data.updatedAt && typeof data.updatedAt.toMillis === 'function') return data.updatedAt.toMillis();
+  if(data.updatedAt && data.updatedAt.seconds) return data.updatedAt.seconds*1000;
+  if(data.plan && data.plan.generatedAt) return Date.parse(data.plan.generatedAt)||0;
+  return Date.now();
+}
+function getComparablePayload(data){
+  if(!data)return '';
+  try{
+    return JSON.stringify({
+      depotIdx:data.depotIdx,
+      trafficTime:data.trafficTime,
+      pickupMin:data.pickupMin,
+      departTime:data.departTime,
+      orders:data.orders||[],
+      depots:data.depots||[],
+      plan:data.plan||null
+    });
+  }catch(e){return String(Date.now())}
+}
+
 function applyRemoteData(data){
   if(!data)return;
   // Don't overwrite local changes waiting to be saved
-  if(_cloudSaveTimer){
+  if(_cloudSaveTimer || _cloudSaving){
     console.log('Skipping remote apply: local save pending');
     return;
   }
+  const comparable=getComparablePayload(data);
+  if(comparable && comparable===_lastAppliedJson){
+    return;
+  }
   _cloudLoading=true;
+  try{
   S.depotIdx=data.depotIdx??S.depotIdx??0;
   S.trafficTime=data.trafficTime||S.trafficTime||'08:00';
   S.pickupMin=data.pickupMin||S.pickupMin||20;
@@ -537,7 +569,15 @@ function applyRemoteData(data){
       }
     }
   }else{clearPlanResults();}
-  _cloudLoading=false;
+  _lastAppliedJson=comparable;
+  _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
+  }catch(e){
+    console.error('[Sync] applyRemoteData failed:', e);
+    _syncStats.lastError=e.message||String(e);
+    setSyncStatus('Sync: apply error','err');
+  }finally{
+    _cloudLoading=false;
+  }
 }
 function subscribePlan(){
   try{
@@ -567,7 +607,9 @@ function subscribePlan(){
           updateSyncBadge();
           return;
         }
-        applyRemoteData(snap.data());
+        const data=snap.data();
+        _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
+        applyRemoteData(data);
         const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
         setSyncStatus(`Sync: live ✓ (${_syncStats.snapshots} updates · ${fmt})`,'ok');
         updateSyncBadge();
@@ -596,7 +638,10 @@ async function forceRefresh(){
   try{
     const snap=await planDocRef().get({source:'server'});
     if(snap.exists){
-      applyRemoteData(snap.data());
+      const data=snap.data();
+      applyRemoteData(data);
+      _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
+      _lastAppliedJson=getComparablePayload(data);
       setSyncStatus('Sync: refreshed ✓','ok');
       _syncStats.snapshots++;
       _syncStats.lastSnap=new Date();
@@ -611,6 +656,37 @@ async function forceRefresh(){
     setSyncStatus('Sync: refresh failed','err');
     alert('Refresh failed: '+(e.message||e.code||'unknown'));
   }
+}
+
+
+async function pollCloudOnce(reason){
+  if(!window.db || _cloudSaving || _cloudSaveTimer || _cloudLoading)return;
+  try{
+    const snap=await planDocRef().get({source:'server'});
+    if(!snap.exists)return;
+    const data=snap.data();
+    const ver=getRemoteVersion(data);
+    const comparable=getComparablePayload(data);
+    if(ver>_lastRemoteVersion || (comparable && comparable!==_lastAppliedJson)){
+      console.log('[Sync] Poll update detected:', reason||'timer', {ver,last:_lastRemoteVersion});
+      applyRemoteData(data);
+      _syncStats.snapshots++;
+      _syncStats.lastSnap=new Date();
+      const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      setSyncStatus(`Sync: live ✓ auto ${fmt}`,'ok');
+      updateSyncBadge();
+    }
+  }catch(e){
+    console.warn('[Sync] Poll failed:', e);
+  }
+}
+function startCloudPolling(){
+  if(_pollTimer)clearInterval(_pollTimer);
+  _pollTimer=setInterval(()=>pollCloudOnce('interval'),5000);
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)pollCloudOnce('visible');
+  });
+  window.addEventListener('focus',()=>pollCloudOnce('focus'));
 }
 
 // ── CLOCK ──
@@ -712,9 +788,7 @@ async function getFullMatrix(locations){
 
 function invalidatePlan(){
   _plan=null;
-  const p2p=document.getElementById('p2p-list'); if(p2p)p2p.innerHTML='';
-  const route=document.getElementById('route-el'); if(route)route.innerHTML='';
-  const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
+  clearPlanResults();
 }
 
 
@@ -804,7 +878,7 @@ function doImp(){
 function renderTable(){
   const tb=document.getElementById('tbody');
   document.getElementById('o-cnt').textContent=S.orders.length+' 单';
-  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">还没有Orders — 添加或导入</td></tr>';return}
+  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">No orders yet — add or import orders</td></tr>';renderMobileOrders();return}
   tb.innerHTML=S.orders.map((o,i)=>{
     const mc=o.mode==='Multi-stop'?'m-multi':'m-p2p';
     return`<tr>
@@ -1189,6 +1263,7 @@ setInterval(updateUrgency,60000);
       if(typeof setSyncStatus === 'function') setSyncStatus('Sync: connecting...','');
       if(typeof subscribePlan === 'function'){
         subscribePlan();
+        startCloudPolling();
         setTimeout(function(){
           if(_syncStats.snapshots===0){
             console.warn('[Sync] No snapshots received after 10s — check Firestore Rules');
