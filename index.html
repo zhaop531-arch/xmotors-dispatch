@@ -24,6 +24,14 @@ let _cloudUnsub = null;
 let _cloudSaving = false;
 let _cloudLoading = false;
 let _cloudSaveTimer = null;
+let _syncStats = {snapshots:0, saves:0, lastSnap:null, lastSave:null, lastError:null, listenerActive:false};
+function updateSyncBadge(){
+  const el=document.getElementById('sync-lbl');
+  if(!el)return;
+  const s=_syncStats;
+  const fmt=t=>t?t.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+  el.title=`Listener: ${s.listenerActive?'ACTIVE':'INACTIVE'}\nSnapshots received: ${s.snapshots}\nSaves sent: ${s.saves}\nLast snapshot: ${fmt(s.lastSnap)}\nLast save: ${fmt(s.lastSave)}\nLast error: ${s.lastError||'none'}`;
+}
 </script>
 
 <style>
@@ -229,7 +237,7 @@ cloudSaveNow()"></div>
       </select>
     </div>
     <div class="fi"><span class="dot" id="api-dot"></span><span id="api-lbl" style="font-size:11px"></span></div>
-    <div class="fi"><span class="sync-pill" id="sync-lbl">Cloud sync: loading</span></div>
+    <div class="fi"><span class="sync-pill" id="sync-lbl" onclick="forceRefresh()" style="cursor:pointer" title="Click to force refresh from cloud">Cloud sync: loading</span></div>
   </div>
   <span class="now-clock" id="clock"></span>
   <div class="fr">
@@ -415,15 +423,21 @@ function cloudSaveDebounced(){
 }
 async function cloudSaveNow(){
   if(_cloudLoading)return;
-  _cloudSaveTimer=null; // clear pending flag
+  _cloudSaveTimer=null;
   try{
     _cloudSaving=true;
-    setSyncStatus('Cloud sync: saving','');
+    setSyncStatus('Sync: saving...','');
     await planDocRef().set(cloudPayload(),{merge:true});
-    setSyncStatus(_plan?'Cloud sync: plan saved ✓':'Cloud sync: saved ✓','ok');
+    _syncStats.saves++;
+    _syncStats.lastSave=new Date();
+    setSyncStatus(`Sync: saved ✓ (${_syncStats.saves} saves total)`,'ok');
+    updateSyncBadge();
+    console.log('[Sync] Saved successfully #'+_syncStats.saves);
   }catch(e){
-    console.error('Cloud save error:',e);
-    setSyncStatus('Cloud sync: save error','err');
+    console.error('[Sync] Save error:',e);
+    _syncStats.lastError=e.message||e.code;
+    setSyncStatus('Sync: save error · '+(e.code||'unknown'),'err');
+    updateSyncBadge();
   }finally{
     _cloudSaving=false;
   }
@@ -486,33 +500,75 @@ function applyRemoteData(data){
 }
 function subscribePlan(){
   try{
-    if(_cloudUnsub)_cloudUnsub();
+    if(_cloudUnsub){_cloudUnsub();_cloudUnsub=null}
+    _syncStats.listenerActive=false;
     setSyncStatus('Cloud sync: connecting','');
-    _cloudUnsub=planDocRef().onSnapshot((snap)=>{
+    console.log('[Sync] Subscribing to doc:', S.date||todayStr());
+    _cloudUnsub=planDocRef().onSnapshot({includeMetadataChanges:false},(snap)=>{
+      _syncStats.snapshots++;
+      _syncStats.lastSnap=new Date();
+      _syncStats.listenerActive=true;
+      console.log('[Sync] Snapshot received #'+_syncStats.snapshots, {
+        exists:snap.exists,
+        hasPendingWrites:snap.metadata.hasPendingWrites,
+        fromCache:snap.metadata.fromCache,
+        orderCount:snap.exists?(snap.data().orders||[]).length:0
+      });
       try{
         if(!snap.exists){
-          setSyncStatus('Cloud sync: new plan','');
+          setSyncStatus('Sync: empty doc · waiting','');
           if((S.orders||[]).length)cloudSaveNow();
+          updateSyncBadge();
           return;
         }
-        // Skip local echoes (our own writes not yet confirmed by server)
         if(snap.metadata.hasPendingWrites){
-          setSyncStatus('Cloud sync: sending...','');
+          setSyncStatus('Sync: sending...','');
+          updateSyncBadge();
           return;
         }
         applyRemoteData(snap.data());
-        setSyncStatus('Cloud sync: live ✓','ok');
+        const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        setSyncStatus(`Sync: live ✓ (${_syncStats.snapshots} updates · ${fmt})`,'ok');
+        updateSyncBadge();
       }catch(renderErr){
-        console.error('Cloud snapshot render error:', renderErr);
-        setSyncStatus('Cloud sync: render error','err');
+        console.error('[Sync] Render error:', renderErr);
+        _syncStats.lastError=renderErr.message;
+        setSyncStatus('Sync: render error','err');
+        updateSyncBadge();
       }
     },(err)=>{
-      console.error(err);
-      setSyncStatus('Cloud sync: permission/error','err'); alert('Firebase permission/error. Please check Firestore Rules or browser console.');
+      console.error('[Sync] Listener error:', err);
+      _syncStats.lastError=err.message||err.code||'unknown';
+      _syncStats.listenerActive=false;
+      setSyncStatus('Sync: '+(err.code||'error')+' (check rules)','err');
+      updateSyncBadge();
     });
   }catch(e){
-    console.error(e);
-    setSyncStatus('Cloud sync: error','err');
+    console.error('[Sync] Subscribe exception:', e);
+    _syncStats.lastError=e.message;
+    setSyncStatus('Sync: subscribe failed','err');
+    updateSyncBadge();
+  }
+}
+async function forceRefresh(){
+  setSyncStatus('Sync: forcing refresh...','');
+  try{
+    const snap=await planDocRef().get({source:'server'});
+    if(snap.exists){
+      applyRemoteData(snap.data());
+      setSyncStatus('Sync: refreshed ✓','ok');
+      _syncStats.snapshots++;
+      _syncStats.lastSnap=new Date();
+      updateSyncBadge();
+      alert('✓ Refreshed from cloud\nSnapshots: '+_syncStats.snapshots+'\nOrders: '+(S.orders||[]).length);
+    }else{
+      setSyncStatus('Sync: no data on server','');
+      alert('No data found on server for date '+(S.date||todayStr()));
+    }
+  }catch(e){
+    console.error('[Sync] Force refresh error:',e);
+    setSyncStatus('Sync: refresh failed','err');
+    alert('Refresh failed: '+(e.message||e.code||'unknown'));
   }
 }
 
@@ -1079,26 +1135,42 @@ setInterval(updateUrgency,60000);
 (function(){
   function bootCloudSync(){
     try{
-      if(typeof setSyncStatus === 'function') setSyncStatus('Cloud sync: connecting','');
+      if(typeof firebase === 'undefined' || !firebase.firestore){
+        console.error('[Sync] Firebase SDK not loaded');
+        const el=document.getElementById('sync-lbl');
+        if(el){
+          el.textContent='Sync: Firebase SDK failed';
+          el.style.color='var(--err)';
+          el.style.borderColor='#e8adad';
+        }
+        return;
+      }
+      console.log('[Sync] Firebase loaded, project:', firebase.app().options.projectId);
+      if(typeof setSyncStatus === 'function') setSyncStatus('Sync: connecting...','');
       if(typeof subscribePlan === 'function'){
         subscribePlan();
+        // Watchdog: if listener doesn't fire within 10s, warn
+        setTimeout(function(){
+          if(_syncStats.snapshots===0){
+            console.warn('[Sync] No snapshots received after 10s — check Firestore Rules');
+            setSyncStatus('Sync: no data (check Firestore Rules)','err');
+          }
+        },10000);
       }else{
         const el=document.getElementById('sync-lbl');
         if(el){
-          el.textContent='Cloud sync: script not ready';
+          el.textContent='Sync: script not ready';
           el.style.color='var(--err)';
-          el.style.borderColor='#e8adad';
         }
         console.error('subscribePlan function not found');
       }
     }catch(e){
       const el=document.getElementById('sync-lbl');
       if(el){
-        el.textContent='Cloud sync: init error';
+        el.textContent='Sync: init error';
         el.style.color='var(--err)';
-        el.style.borderColor='#e8adad';
       }
-      console.error('Cloud sync init error:', e);
+      console.error('[Sync] Init error:', e);
     }
   }
 
