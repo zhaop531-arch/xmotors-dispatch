@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -53,7 +53,7 @@ window.closeSideV17 = function(){
       if(err){
         document.body && document.body.insertAdjacentHTML('afterbegin',
           '<div style="background:#fae8e8;color:#952828;padding:12px 16px;font-family:sans-serif;border-bottom:1px solid #e8adad">' +
-          '⚠ Firebase SDK could not load from any CDN. Cloud sync disabled. Check internet/firewall.' +
+          '鈿?Firebase SDK could not load from any CDN. Cloud sync disabled. Check internet/firewall.' +
           '</div>');
         reject(err);
       } else {
@@ -85,7 +85,7 @@ function updateSyncBadge(){
   const el=document.getElementById('sync-lbl');
   if(!el)return;
   const s=_syncStats;
-  const fmt=t=>t?t.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+  const fmt=t=>t?t.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'-';
   el.title=`Listener: ${s.listenerActive?'ACTIVE':'INACTIVE'}\nSnapshots received: ${s.snapshots}\nSaves sent: ${s.saves}\nLast snapshot: ${fmt(s.lastSnap)}\nLast save: ${fmt(s.lastSave)}\nLast error: ${s.lastError||'none'}`;
 }
 </script>
@@ -449,6 +449,62 @@ tbody tr:hover td{background:#fafaf8}
   .side-toggle-v17{display:none!important}
 }
 
+
+/* Workspace view layout */
+.view-panel{display:none}
+.view-panel.active{display:block}
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 12px}
+.view-head h1{font-size:22px;line-height:1.1;margin:0;letter-spacing:0}
+.view-head p{font-size:12px;color:var(--muted);margin:4px 0 0}
+.side-nav .view-nav.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.dispatch-board{display:grid;gap:10px}
+.dispatch-item{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:12px;align-items:center}
+.dispatch-rank{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);font-weight:700;font-size:13px}
+.dispatch-main{min-width:0}
+.dispatch-title{font-weight:700;font-size:14px;line-height:1.25}
+.dispatch-meta{font-size:12px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dispatch-next{text-align:right;font-size:12px;color:var(--muted)}
+.dispatch-next strong{display:block;color:var(--txt);font-size:16px}
+.dispatch-item.urgent{border-left:4px solid var(--err)}
+.dispatch-item.soon{border-left:4px solid var(--warn)}
+.dispatch-item.safe{border-left:4px solid var(--ok)}
+.dispatch-item.done{opacity:.72}
+.app-sidebar{width:272px;padding:18px 16px 20px}
+.side-brand{font-size:18px;line-height:1.1}
+.side-section{padding-top:14px;margin-top:14px}
+.side-stack .fi input,.side-stack .fi select,.side-stack .fr button,.side-stack button,.side-nav button{min-height:40px;border-radius:8px}
+.side-nav{display:grid;gap:8px}
+.side-nav button{margin:0}
+.page{width:auto;min-height:100vh}
+.hdr{position:sticky;top:0;z-index:120;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+@media(max-width:900px){
+  body{background:#f7f6f2}
+  .page{margin-left:0;padding:12px 12px 76px;max-width:100%}
+  .hdr{margin:-12px -12px 12px;padding:12px calc(12px + env(safe-area-inset-right)) 12px calc(12px + env(safe-area-inset-left));border-width:0 0 1px;border-radius:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+  .hdr .logo{width:auto;font-size:15px;line-height:1.2}.hdr .logo span{display:block;font-size:11px;margin-top:1px}
+  .now-clock{grid-column:1;color:var(--muted);font-size:11px;margin:0;white-space:nowrap}
+  .mobile-menu-top{grid-column:2;grid-row:1 / span 2;display:inline-flex!important;min-width:64px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--accent);border-color:var(--accent);color:#fff;justify-content:center;font-weight:700}
+  .side-toggle-v17{right:16px!important;bottom:16px!important;width:58px!important;height:58px!important;border-radius:999px!important;font-size:12px!important;font-weight:800!important;z-index:650!important}
+  .side-mask-v17.open{z-index:700!important;background:rgba(25,25,23,.42)!important;backdrop-filter:blur(2px)}
+  .app-sidebar{left:-88vw!important;width:min(86vw,340px)!important;max-width:340px;padding:16px!important;z-index:710!important;border-right:0;border-radius:0 14px 14px 0;box-shadow:12px 0 32px rgba(0,0,0,.24)!important}
+  .app-sidebar.open{left:0!important}
+  .drawer-close{min-height:40px;border-radius:999px;font-weight:700}
+  .view-head{margin-bottom:10px}.view-head h1{font-size:24px}.view-head p{font-size:12px}
+  .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+  .kpi-card{border-radius:8px;padding:10px}.kpi-value{font-size:20px}.kpi-sub{font-size:10px}
+  .exception-box,.tbl-wrap,.imp-box,#map-wrap,.route-section,.route-tools,.mo-card,.d-card,.dispatch-item{border-radius:8px}
+  .tbl-bar{background:transparent;margin:12px 0 8px;gap:8px}.tbl-bar>.fr:first-child{width:auto}.tbl-bar>.fr:last-child{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.tbl-bar .fr button{width:100%;min-height:40px}
+  .mobile-orders{display:grid;gap:10px;margin-bottom:14px}.mo-card{margin:0;padding:12px;border-left:4px solid var(--bd2);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .mo-title{font-size:15px}.mo-edit-grid{grid-template-columns:1fr 1fr;gap:9px}.mo-edit-field input,.mo-edit-field select,.mo-edit-field textarea{min-height:40px;border-radius:8px;background:#fff}.mo-edit-field textarea{min-height:64px}
+  .mo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mo-actions button{min-height:40px;justify-content:center}
+  .gen-row{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;margin:12px 0}.gen-btn{min-height:44px;margin:0 0 8px}.gen-note{text-align:left;font-size:11px;line-height:1.4}
+  .d-card{grid-template-columns:32px minmax(0,1fr);padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.d-stats{display:grid;grid-template-columns:1fr;gap:4px}
+  .dispatch-item{grid-template-columns:36px minmax(0,1fr);align-items:start}.dispatch-next{grid-column:2;text-align:left}
+  #map{height:280px}.map-placeholder{height:280px}
+}
+@media(max-width:420px){
+  .page{padding-left:10px;padding-right:10px}.hdr{margin-left:-10px;margin-right:-10px}.mo-edit-grid,.tbl-bar>.fr:last-child,.mo-actions{grid-template-columns:1fr}.dispatch-item{grid-template-columns:1fr}.dispatch-rank{display:none}
+}
 </style>
 </head>
 <body>
@@ -471,11 +527,11 @@ tbody tr:hover td{background:#fafaf8}
   <div class="side-section">
     <div class="side-title">Navigation</div>
     <div class="side-nav">
-      <button onclick="scrollToSec('top');closeSideV17()">📊 Dashboard</button>
-      <button onclick="scrollToSec('exception-el');closeSideV17()">⚠ Exceptions</button>
-      <button onclick="scrollToSec('plan-section');closeSideV17()">🧭 Plan Result</button>
-      <button onclick="scrollToSec('orders-section');closeSideV17()">📝 Orders</button>
-      <button onclick="scrollToSec('map-section');closeSideV17()">🗺 Map</button>
+      <button class="view-nav active" data-view-nav="dashboard" onclick="showView('dashboard')">Dashboard</button>
+      <button class="view-nav" data-view-nav="orders" onclick="showView('orders')">Orders</button>
+      <button class="view-nav" data-view-nav="planning" onclick="showView('planning')">Planning</button>
+      <button class="view-nav" data-view-nav="dispatch" onclick="showView('dispatch')">Dispatch</button>
+      <button class="view-nav" data-view-nav="map" onclick="showView('map')">Map</button>
     </div>
   </div>
 
@@ -485,7 +541,7 @@ tbody tr:hover td{background:#fafaf8}
   </div>
 </aside>
 <div class="side-mask-v17 no-print" id="side-mask-v17" onclick="closeSideV17()"></div>
-<button class="side-toggle-v17 no-print" onclick="openSideV17()">☰</button>
+<button class="side-toggle-v17 no-print" onclick="openSideV17()" aria-label="Open menu">Menu</button>
 
 <div class="page">
 
@@ -506,108 +562,149 @@ tbody tr:hover td{background:#fafaf8}
     <div class="fi"><span class="sync-pill" id="sync-lbl" onclick="forceRefresh()" style="cursor:pointer" title="Click to force refresh from cloud">Cloud sync: loading</span></div>
   </div>
   <span class="now-clock" id="clock"></span>
-  <button class="mobile-menu-top no-print" id="mobile-menu-top-v18" onclick="openSideV17()">☰ Menu</button>
+  <button class="mobile-menu-top no-print" id="mobile-menu-top-v18" onclick="openSideV17()" aria-label="Open menu">Menu</button>
   <div class="fr">
-    <button onclick="showSet()">⚙ Settings</button>
-    <button onclick="doExport()">📊 Excel</button>
-    <button onclick="window.print()">🖨</button>
+    <button onclick="showSet()">Settings</button>
+    <button onclick="doExport()">Excel</button>
+    <button onclick="window.print()">Print</button>
   </div>
 </div>
-
-<div id="top"></div>
-<div id="dashboard-el"></div>
-<div id="exception-el"></div>
-<div class="tbl-bar no-print" id="orders-section">
-  <div class="fr">
-    <span style="font-weight:600;font-size:13px">Today's Orders</span>
-    <span class="badge" id="o-cnt">0</span>
+<section class="view-panel active" id="view-dashboard" data-view="dashboard">
+  <div class="view-head no-print">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Today at a glance: volume, risks, and completion.</p>
+    </div>
   </div>
-  <div class="fr">
-    <button onclick="togImp()">📥 Import CSV</button>
-    <button onclick="copyOrdersToDate()">📋 Copy Date</button>
-    <button onclick="moveOrdersToDate()">↪ Move Date</button>
-    <button class="btn-d" onclick="addRow()">＋ Add</button>
+  <div id="top"></div>
+  <div id="dashboard-el"></div>
+  <div id="exception-el"></div>
+</section>
+
+<section class="view-panel" id="view-orders" data-view="orders">
+  <div class="view-head no-print">
+    <div>
+      <h1>Orders</h1>
+      <p>Create, import, and edit delivery orders.</p>
+    </div>
   </div>
-</div>
-
-<div class="no-print" style="font-size:11px;color:var(--muted);margin:-4px 0 8px">Date is local view. Orders sync only when devices are viewing the same date. Use Copy Date / Move Date if orders were entered under the wrong date.</div>
-
-<div id="imp-el" style="display:none" class="no-print">
-  <div class="imp-box">
-    <div class="fb" style="margin-bottom:6px"><span style="font-weight:500;font-size:13px">Paste CSV</span><button class="btn-d" onclick="doImp()">Import</button></div>
-    <div class="imp-fmt">Order No., Customer, Address, Closing Time, Priority(High/Medium/Low), Mode(Point-to-Point/Multi-stop)</div>
-    <textarea id="csv-in" rows="3" placeholder="ORD-001, Dealer Sunter, Jl Sunter Raya No.1 Jakarta Utara, 17:00, Medium, Point-to-Point"></textarea>
+  <div class="tbl-bar no-print" id="orders-section">
+    <div class="fr">
+      <span style="font-weight:600;font-size:13px">Today's Orders</span>
+      <span class="badge" id="o-cnt">0</span>
+    </div>
+    <div class="fr">
+      <button onclick="togImp()">Import CSV</button>
+      <button onclick="copyOrdersToDate()">Copy Date</button>
+      <button onclick="moveOrdersToDate()">Move Date</button>
+      <button class="btn-d" onclick="addRow()">Add</button>
+    </div>
   </div>
-</div>
 
-<div class="tbl-wrap no-print">
-  <table>
-    <thead><tr>
-      <th style="width:28px">#</th><th style="width:85px">Order No.</th><th>Customer</th><th style="min-width:170px">Address</th>
-      <th style="width:72px">Close</th><th style="width:62px">Service(min)</th><th style="width:62px">Priority</th><th style="width:92px">Status</th><th style="width:80px">Mode</th><th style="width:24px"></th>
-    </tr></thead>
-    <tbody id="tbody"></tbody>
-  </table>
-</div>
-<div class="mobile-orders no-print" id="mobile-orders"></div>
+  <div class="no-print" style="font-size:11px;color:var(--muted);margin:-4px 0 8px">Date is local view. Orders sync only when devices are viewing the same date. Use Copy Date / Move Date if orders were entered under the wrong date.</div>
 
-<div class="gen-row no-print">
-  <button class="gen-btn" id="gen-btn" onclick="generate()">🔄 Generate Plan</button>
-  <span class="gen-note" id="gen-note">Calculate optimal dispatch sequence based on Google Maps live traffic</span>
-</div>
+  <div id="imp-el" style="display:none" class="no-print">
+    <div class="imp-box">
+      <div class="fb" style="margin-bottom:6px"><span style="font-weight:500;font-size:13px">Paste CSV</span><button class="btn-d" onclick="doImp()">Import</button></div>
+      <div class="imp-fmt">Order No., Customer, Address, Closing Time, Priority(High/Medium/Low), Mode(Point-to-Point/Multi-stop)</div>
+      <textarea id="csv-in" rows="3" placeholder="ORD-001, Dealer Sunter, Jl Sunter Raya No.1 Jakarta Utara, 17:00, Medium, Point-to-Point"></textarea>
+    </div>
+  </div>
 
-<div id="plan-section"></div>
-<div id="route-tools"></div>
-<div class="mobile-map-note">Map auto-loads when plan is generated or synced. Use "Open Route in Google Maps" if embedded map is slow.</div>
-<div id="map-section"></div>
-<div id="map-wrap" style="display:none"><div id="map"></div></div>
-<div id="alert-el"></div>
-<div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
-<div class="dispatch-list" id="p2p-list"></div>
-<div id="route-el"></div>
+  <div class="tbl-wrap no-print">
+    <table>
+      <thead><tr>
+        <th style="width:28px">#</th><th style="width:85px">Order No.</th><th>Customer</th><th style="min-width:170px">Address</th>
+        <th style="width:72px">Close</th><th style="width:62px">Service(min)</th><th style="width:62px">Priority</th><th style="width:92px">Status</th><th style="width:80px">Mode</th><th style="width:24px"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="mobile-orders no-print" id="mobile-orders"></div>
+</section>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v18 · Mobile Sidebar Fix</div>
+<section class="view-panel" id="view-planning" data-view="planning">
+  <div class="view-head no-print">
+    <div>
+      <h1>Planning</h1>
+      <p>Generate routes and review point-to-point or multi-stop plans.</p>
+    </div>
+  </div>
+  <div class="gen-row no-print">
+    <button class="gen-btn" id="gen-btn" onclick="generate()">Generate Plan</button>
+    <span class="gen-note" id="gen-note">Calculate optimal dispatch sequence based on Google Maps live traffic</span>
+  </div>
+  <div id="plan-section"></div>
+  <div id="route-tools"></div>
+  <div id="alert-el"></div>
+  <div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
+  <div class="dispatch-list" id="p2p-list"></div>
+  <div id="route-el"></div>
+</section>
+
+<section class="view-panel" id="view-dispatch" data-view="dispatch">
+  <div class="view-head no-print">
+    <div>
+      <h1>Dispatch</h1>
+      <p>Operational queue sorted by what needs attention next.</p>
+    </div>
+  </div>
+  <div id="dispatch-board"></div>
+</section>
+
+<section class="view-panel" id="view-map" data-view="map">
+  <div class="view-head no-print">
+    <div>
+      <h1>Map</h1>
+      <p>Route overview and map navigation.</p>
+    </div>
+  </div>
+  <div class="mobile-map-note">Map auto-loads when plan is generated or synced. Use "Open Route in Google Maps" if embedded map is slow.</div>
+  <div id="map-section"></div>
+  <div id="map-wrap" style="display:none"><div id="map"></div></div>
+</section>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner 路 Firebase Sync Version v18 路 Mobile Sidebar Fix</div>
 </div>
 
 
 <div class="quick-nav no-print">
-  <button onclick="scrollToSec('top')">📊 Dashboard</button>
-  <button onclick="scrollToSec('exception-el')">⚠ Exceptions</button>
-  <button onclick="scrollToSec('plan-section')">🧭 Plan</button>
-  <button onclick="scrollToSec('orders-section')">📝 Orders</button>
-  <button onclick="scrollToSec('map-section')">🗺 Map</button>
+  <button onclick="scrollToSec('top')">馃搳 Dashboard</button>
+  <button onclick="scrollToSec('exception-el')">鈿?Exceptions</button>
+  <button onclick="scrollToSec('plan-section')">馃Л Plan</button>
+  <button onclick="scrollToSec('orders-section')">馃摑 Orders</button>
+  <button onclick="scrollToSec('map-section')">馃椇 Map</button>
 </div>
-<button class="quick-toggle no-print" onclick="openDrawer()">☰</button>
+<button class="quick-toggle no-print" onclick="openDrawer()">鈽?/button>
 <div class="drawer-mask no-print" id="drawer-mask" onclick="closeDrawer()"></div>
 <div class="mobile-drawer no-print" id="mobile-drawer">
   <div class="drawer-title">Quick Navigation</div>
-  <button class="drawer-btn" onclick="scrollToSec('top');closeDrawer()">📊 Dashboard</button>
-  <button class="drawer-btn" onclick="scrollToSec('exception-el');closeDrawer()">⚠ Exceptions</button>
-  <button class="drawer-btn" onclick="scrollToSec('plan-section');closeDrawer()">🧭 Plan Result</button>
-  <button class="drawer-btn" onclick="scrollToSec('orders-section');closeDrawer()">📝 Edit Orders</button>
-  <button class="drawer-btn" onclick="scrollToSec('map-section');closeDrawer()">🗺 Map</button>
+  <button class="drawer-btn" onclick="scrollToSec('top');closeDrawer()">馃搳 Dashboard</button>
+  <button class="drawer-btn" onclick="scrollToSec('exception-el');closeDrawer()">鈿?Exceptions</button>
+  <button class="drawer-btn" onclick="scrollToSec('plan-section');closeDrawer()">馃Л Plan Result</button>
+  <button class="drawer-btn" onclick="scrollToSec('orders-section');closeDrawer()">馃摑 Edit Orders</button>
+  <button class="drawer-btn" onclick="scrollToSec('map-section');closeDrawer()">馃椇 Map</button>
   <button class="drawer-close" onclick="closeDrawer()">Close</button>
 </div>
 
 <!-- Settings -->
 <div class="mbg" id="set-modal" style="display:none" onclick="if(event.target===this)hideSet()">
   <div class="mod">
-    <h3>⚙ Settings</h3>
+    <h3>鈿?Settings</h3>
     <div class="mf">
       <label>Google Maps API Key</label>
       <input type="password" id="si-key" placeholder="AIzaSy...">
       <div class="ht">Enable Maps JavaScript API + Distance Matrix API + Geocoding API in Google Cloud Console.</div>
     </div>
     <div class="mf">
-      <label>BCS HEAD OFFICE (HO) — Address</label>
+      <label>BCS HEAD OFFICE (HO) 鈥?Address</label>
       <input id="si-addr-0" placeholder="Warehouse address for Maps">
     </div>
     <div class="mf">
-      <label>BCS-1 Kelapa Gading — Address</label>
+      <label>BCS-1 Kelapa Gading 鈥?Address</label>
       <input id="si-addr-1" placeholder="Warehouse address for Maps">
     </div>
     <div class="mf">
-      <label>BCS-2 PIK 2 — Address</label>
+      <label>BCS-2 PIK 2 鈥?Address</label>
       <input id="si-addr-2" placeholder="Warehouse address for Maps">
     </div>
     <div class="mf">
@@ -638,7 +735,7 @@ let _map=null, _markers=[], _plan=null;
 
 function todayStr(){return new Date().toISOString().slice(0,10)}
 function t2m(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m}
-function m2t(m){if(m==null||isNaN(m))return'—';m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function m2t(m){if(m==null||isNaN(m))return'-';m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes()}
 function buildPlanDateTime(timeStr){
   const dateStr=S.date||todayStr();
@@ -726,13 +823,13 @@ async function cloudSaveNow(){
     await planDocRef().set(cloudPayload(),{merge:true});
     _syncStats.saves++;
     _syncStats.lastSave=new Date();
-    setSyncStatus(`Sync: saved ✓ (${_syncStats.saves} saves total)`,'ok');
+    setSyncStatus(`Sync: saved 鉁?(${_syncStats.saves} saves total)`,'ok');
     updateSyncBadge();
     console.log('[Sync] Saved successfully #'+_syncStats.saves);
   }catch(e){
     console.error('[Sync] Save error:',e);
     _syncStats.lastError=e.message||e.code;
-    setSyncStatus('Sync: save error · '+(e.code||'unknown'),'err');
+    setSyncStatus('Sync: save error 路 '+(e.code||'unknown'),'err');
     updateSyncBadge();
   }finally{
     _cloudSaving=false;
@@ -813,7 +910,7 @@ function subscribePlan(){
       });
       try{
         if(!snap.exists){
-          setSyncStatus('Sync: empty doc · waiting','');
+          setSyncStatus('Sync: empty doc 路 waiting','');
           if((S.orders||[]).length)cloudSaveNow();
           updateSyncBadge();
           return;
@@ -825,7 +922,7 @@ function subscribePlan(){
         }
         applyRemoteData(snap.data());
         const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-        setSyncStatus(`Sync: live ✓ (${_syncStats.snapshots} updates · ${fmt})`,'ok');
+        setSyncStatus(`Sync: live 鉁?(${_syncStats.snapshots} updates 路 ${fmt})`,'ok');
         updateSyncBadge();
       }catch(renderErr){
         console.error('[Sync] Render error:', renderErr);
@@ -853,11 +950,11 @@ async function forceRefresh(){
     const snap=await planDocRef().get({source:'server'});
     if(snap.exists){
       applyRemoteData(snap.data());
-      setSyncStatus('Sync: refreshed ✓','ok');
+      setSyncStatus('Sync: refreshed','ok');
       _syncStats.snapshots++;
       _syncStats.lastSnap=new Date();
       updateSyncBadge();
-      alert('✓ Refreshed from cloud\nSnapshots: '+_syncStats.snapshots+'\nOrders: '+(S.orders||[]).length);
+      alert('鉁?Refreshed from cloud\nSnapshots: '+_syncStats.snapshots+'\nOrders: '+(S.orders||[]).length);
     }else{
       setSyncStatus('Sync: no data on server','');
       alert('No data found on server for date '+(S.date||todayStr()));
@@ -877,7 +974,7 @@ async function loadCurrentDateDoc(){
     const snap=await planDocRef().get({source:'server'});
     if(snap.exists){
       applyRemoteData(snap.data());
-      setSyncStatus('Sync: date loaded ✓','ok');
+      setSyncStatus('Sync: date loaded','ok');
     }else{
       S.orders=[];
       S.nid=1;
@@ -887,7 +984,7 @@ async function loadCurrentDateDoc(){
       saveLocal();
       renderTable();
       clearPlanResults();
-      setSyncStatus('Sync: empty date ✓','ok');
+      setSyncStatus('Sync: empty date','ok');
     }
   }catch(e){
     console.error('[Sync] loadCurrentDateDoc failed:',e);
@@ -953,7 +1050,7 @@ async function copyOrdersToDate(){
     payload.activeDate=target;
     payload.plan=null; // copied orders should regenerate plan
     await targetRef.set(payload,{merge:false});
-    setSyncStatus('Sync: copied ✓','ok');
+    setSyncStatus('Sync: copied','ok');
     alert(`Copied orders to ${target}. You can switch Date to view it.`);
   }catch(e){
     console.error('[Sync] copyOrdersToDate failed:',e);
@@ -994,7 +1091,7 @@ async function moveOrdersToDate(){
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:false});
     await switchViewDate(target);
-    setSyncStatus('Sync: moved ✓','ok');
+    setSyncStatus('Sync: moved','ok');
     alert(`Moved orders to ${target}. ${fromDate} has been cleared.`);
   }catch(e){
     console.error('[Sync] moveOrdersToDate failed:',e);
@@ -1003,10 +1100,10 @@ async function moveOrdersToDate(){
   }
 }
 
-// ── CLOCK ──
-function updateClock(){document.getElementById('clock').textContent='⏱ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}
+// 鈹€鈹€ CLOCK 鈹€鈹€
+function updateClock(){document.getElementById('clock').textContent='鈴?'+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}
 
-// ── MAPS ──
+// 鈹€鈹€ MAPS 鈹€鈹€
 let _mapsOk=false,_mapsLoading=false;
 function loadMaps(key){
   if(_mapsOk&&window.google?.maps)return Promise.resolve();
@@ -1016,7 +1113,7 @@ function loadMaps(key){
     window.__mc=()=>{_mapsOk=true;_mapsLoading=false;res()};
     const s=document.createElement('script');
     s.src=`https://maps.googleapis.com/maps/api/js?key=${key}&callback=__mc`;
-    s.onerror=()=>{_mapsLoading=false;rej(new Error('Maps API 加载失败'))};
+    s.onerror=()=>{_mapsLoading=false;rej(new Error('Maps API 鍔犺浇澶辫触'))};
     document.head.appendChild(s);
   });
 }
@@ -1032,7 +1129,7 @@ function geocode(addr,ms){
   });
 }
 function timeoutPromise(ms,msg){
-  return new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg||'请求超时')),ms));
+  return new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg||'璇锋眰瓒呮椂')),ms));
 }
 function dmRequest(origins,destinations,timeoutMs){
   const svc=new google.maps.DistanceMatrixService();
@@ -1045,13 +1142,13 @@ function dmRequest(origins,destinations,timeoutMs){
         drivingOptions:{departureTime:buildPlanDateTime(S.trafficTime||'08:00')}
       },(resp,st)=>{
         if(st!=='OK'){
-          rej(new Error('Distance Matrix: '+st+'。请检查 API 是否开启 Distance Matrix、Billing、Key 限制，以及Address是否有效'));
+          rej(new Error('Distance Matrix: '+st+'銆傝妫€鏌?API 鏄惁寮€鍚?Distance Matrix銆丅illing銆並ey 闄愬埗锛屼互鍙夾ddress鏄惁鏈夋晥'));
           return;
         }
         res(resp);
       });
     }),
-    timeoutPromise(timeoutMs||15000,'Distance Matrix 请求超时：可能是 API 限制、网络问题或Address过多')
+    timeoutPromise(timeoutMs||15000,'Distance Matrix 璇锋眰瓒呮椂锛氬彲鑳芥槸 API 闄愬埗銆佺綉缁滈棶棰樻垨Address杩囧')
   ]);
 }
 async function getDistMatrix(origin,destinations){
@@ -1059,8 +1156,7 @@ async function getDistMatrix(origin,destinations){
   const indexed=destinations.map((d,i)=>({d:(d||'').trim(),i})).filter(x=>x.d);
   if(!indexed.length)return results;
 
-  // Google Distance Matrix 单次 destination 太多时容易卡住/超限，这里按 25 个Address分批。
-  const chunkSize=25;
+  // Google Distance Matrix 鍗曟 destination 澶鏃跺鏄撳崱浣?瓒呴檺锛岃繖閲屾寜 25 涓狝ddress鍒嗘壒銆?  const chunkSize=25;
   for(let start=0;start<indexed.length;start+=chunkSize){
     const chunk=indexed.slice(start,start+chunkSize);
     const resp=await dmRequest([origin],chunk.map(x=>x.d),18000);
@@ -1074,7 +1170,7 @@ async function getDistMatrix(origin,destinations){
       const dur=el.duration_in_traffic?el.duration_in_traffic.value:el.duration.value;
       results[idx]={ok:true,distKm:+(el.distance.value/1000).toFixed(1),transitMin:Math.round(dur/60),hasTraffic:!!el.duration_in_traffic};
     });
-    // 轻微间隔，降Low OVER_QUERY_LIMIT 风险
+    // 杞诲井闂撮殧锛岄檷Low OVER_QUERY_LIMIT 椋庨櫓
     if(start+chunkSize<indexed.length)await new Promise(r=>setTimeout(r,250));
   }
   return results;
@@ -1117,9 +1213,9 @@ function saveOperatorLocal(){
   try{localStorage.setItem('xmd_operator',S.operator||'')}catch(e){}
 }
 function fmtDateTime(iso){
-  if(!iso)return '—';
+  if(!iso)return '-';
   const d=new Date(iso);
-  if(isNaN(d.getTime()))return '—';
+  if(isNaN(d.getTime()))return '-';
   return d.toLocaleString('en',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 }
 function addStatusHistory(order,fromStatus,toStatus){
@@ -1138,7 +1234,7 @@ function addStatusHistory(order,fromStatus,toStatus){
 function renderStatusHistory(order){
   const h=Array.isArray(order.statusHistory)?order.statusHistory:[];
   if(!h.length)return '<div class="hist-line">No status history yet</div>';
-  return `<div class="hist-box">${h.slice(0,4).map(x=>`<div class="hist-item"><span class="hist-op">${escHtml(x.by||'Unknown')}</span>: ${escHtml(x.from||'—')} → <strong>${escHtml(x.to||'Pending')}</strong><br><span>${fmtDateTime(x.at)}</span></div>`).join('')}</div>`;
+  return `<div class="hist-box">${h.slice(0,4).map(x=>`<div class="hist-item"><span class="hist-op">${escHtml(x.by||'Unknown')}</span>: ${escHtml(x.from||'-')} to <strong>${escHtml(x.to||'Pending')}</strong><br><span>${fmtDateTime(x.at)}</span></div>`).join('')}</div>`;
 }
 
 function escHtml(v){
@@ -1180,7 +1276,7 @@ function renderMobileOrders(){
   const el=document.getElementById('mobile-orders');
   if(!el)return;
   if(!S.orders.length){
-    el.innerHTML='<div class="empty-row">No orders yet — add or import orders</div>';
+    el.innerHTML='<div class="empty-row">No orders yet 鈥?add or import orders</div>';
     return;
   }
   el.innerHTML=S.orders.map((o,i)=>{
@@ -1195,14 +1291,14 @@ function renderMobileOrders(){
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
           ${planIdx?`<span class="badge">Plan #${planIdx}</span>`:""}
-          <span class="st-pill ${statusClass(st)}">${escHtml(st)}</span>${o.statusUpdatedAt?`<div class="hist-line">by <strong>${escHtml(o.statusUpdatedBy||"Unknown")}</strong> · ${fmtDateTime(o.statusUpdatedAt)}</div>`:""}
+          <span class="st-pill ${statusClass(st)}">${escHtml(st)}</span>${o.statusUpdatedAt?`<div class="hist-line">by <strong>${escHtml(o.statusUpdatedBy||"Unknown")}</strong> 路 ${fmtDateTime(o.statusUpdatedAt)}</div>`:""}
         </div>
       </div>
 
-      ${distInfo&&distInfo.latestCallMs?`
+      ${distInfo&&planTimeValue(distInfo)!=null?`
       <div class="mo-grid">
-        <div class="mo-field"><span>Latest Call</span><strong>${msToClock(distInfo.latestCallMs)}</strong></div>
-        <div class="mo-field"><span>Remaining</span><strong>${msRemainingText(distInfo.latestCallMs)}</strong></div>
+        <div class="mo-field"><span>Latest Call</span><strong>${msToClock(planTimeValue(distInfo))}</strong></div>
+        <div class="mo-field"><span>Remaining</span><strong>${msRemainingText(planTimeValue(distInfo))}</strong></div>
       </div>`:''}
 
       <div class="mo-edit-grid">
@@ -1243,7 +1339,7 @@ function renderMobileOrders(){
       ${renderStatusHistory(o)}
 
       <div class="mo-actions">
-        <button onclick="openNav('${String(o.address||'').replace(/'/g,"\'")}')">🗺 Navigate</button>
+        <button onclick="openNav('${String(o.address||'').replace(/'/g,"\'")}')">馃椇 Navigate</button>
         <button onclick="delRow(${o.id})" style="color:var(--err)">Delete</button>
       </div>
       <div class="mo-small-note">Changes save automatically after editing a field.</div>
@@ -1252,6 +1348,71 @@ function renderMobileOrders(){
 }
 
 
+function closeSideAndScrollTop(){
+  closeSideV17();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showView(name){
+  document.querySelectorAll('.view-panel').forEach(el=>el.classList.toggle('active',el.dataset.view===name));
+  document.querySelectorAll('[data-view-nav]').forEach(el=>el.classList.toggle('active',el.dataset.viewNav===name));
+  if(name==='dispatch')renderDispatchBoard();
+  closeSideAndScrollTop();
+}
+function planTimeValue(item){
+  if(!item)return null;
+  if(item.latestCall!=null)return item.latestCall;
+  if(item.latestCallMs!=null)return item.latestCallMs;
+  return null;
+}
+function minutesRemaining(value){
+  if(value==null)return null;
+  if(value>1440)return Math.round((value-Date.now())/60000);
+  return value-planBaseMin();
+}
+function msToClock(value){
+  if(value==null)return '—';
+  if(value>1440){const d=new Date(value);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+  return m2t(value);
+}
+function msRemainingText(value){
+  const r=minutesRemaining(value);
+  if(r==null)return '—';
+  if(r<0)return 'Overdue';
+  return (r>=60?Math.floor(r/60)+'h ':'')+(r%60)+'m';
+}
+function renderDispatchBoard(){
+  const el=document.getElementById('dispatch-board');
+  if(!el)return;
+  const planItems=getAllPlanItems();
+  const source=planItems.length?planItems:(S.orders||[]);
+  if(!source.length){
+    el.innerHTML='<div class="empty-row">No dispatch work yet - add orders first.</div>';
+    return;
+  }
+  const rows=source.map((item,i)=>{
+    const order=(S.orders||[]).find(o=>String(o.id)===String(item.id))||item;
+    const status=order.status||item.status||'Pending';
+    const t=planTimeValue(item);
+    const remain=minutesRemaining(t);
+    const done=status==='Delivered';
+    const urgency=done?'done':remain==null?'safe':remain<0?'urgent':remain<=30?'urgent':remain<=90?'soon':'safe';
+    const next=t!=null?msToClock(t):(item.closeTime||order.closeTime||'—');
+    return {...item,...order,_idx:i,_status:status,_remain:remain,_urgency:urgency,_next:next};
+  }).sort((a,b)=>{
+    const doneA=a._status==='Delivered',doneB=b._status==='Delivered';
+    if(doneA!==doneB)return doneA?1:-1;
+    const ar=a._remain==null?99999:a._remain,br=b._remain==null?99999:b._remain;
+    return ar-br;
+  });
+  el.innerHTML='<div class="dispatch-board">'+rows.map((o,i)=>`<div class="dispatch-item ${o._urgency}">
+    <div class="dispatch-rank">${i+1}</div>
+    <div class="dispatch-main">
+      <div class="dispatch-title">${escHtml(o.name||'Unnamed customer')} ${o.orderNo?'<span class="badge">'+escHtml(o.orderNo)+'</span>':''}</div>
+      <div class="dispatch-meta">${escHtml(o.address||'Address missing')} · ${escHtml(o.mode||'Point-to-Point')} · ${escHtml(o._status)}</div>
+    </div>
+    <div class="dispatch-next"><span>${o._remain!=null&&o._remain<0?'Overdue':'Next action'}</span><strong>${o._next}</strong><span>${o._remain!=null?msRemainingText(planTimeValue(o)):''}</span></div>
+  </div>`).join('')+'</div>';
+}
 function scrollToSec(id){
   const el=document.getElementById(id);
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1284,8 +1445,9 @@ function buildDashboardData(){
   const completion=total?Math.round(delivered/total*100):0;
   const urgent=orders.filter(o=>{
     const p=getOrderPlanInfo(o.id);
-    if(!p || !p.latestCallMs)return false;
-    const r=minutesRemaining(p.latestCallMs);
+    const tv=planTimeValue(p);
+    if(!p || tv==null)return false;
+    const r=minutesRemaining(tv);
     return r<=30 && (o.status||'Pending')!=='Delivered';
   }).length;
   return {total,delivered,failed,completion,urgent,statusCounts};
@@ -1307,12 +1469,13 @@ function findExceptions(){
     if(st==='Failed / Reschedule'){
       out.push({level:'critical',tag:'FAILED',title,detail:'Order marked as Failed / Reschedule.'});
     }
-    if(p && p.latestCallMs && st!=='Delivered'){
-      const r=minutesRemaining(p.latestCallMs);
+    const tv=planTimeValue(p);
+    if(p && tv!=null && st!=='Delivered'){
+      const r=minutesRemaining(tv);
       if(r<0){
-        out.push({level:'critical',tag:'OVERDUE',title,detail:'Latest Call already passed: '+msToClock(p.latestCallMs)});
+        out.push({level:'critical',tag:'OVERDUE',title,detail:'Latest Call already passed: '+msToClock(tv)});
       }else if(r<=30){
-        out.push({level:'warning',tag:'URGENT',title,detail:'Latest Call soon: '+msToClock(p.latestCallMs)+' · remaining '+msRemainingText(p.latestCallMs)});
+        out.push({level:'warning',tag:'URGENT',title,detail:'Latest Call soon: '+msToClock(tv)+' - remaining '+msRemainingText(tv)});
       }
     }
     if(_plan && !p){
@@ -1328,7 +1491,7 @@ function renderDashboard(){
   el.innerHTML=`<div class="dashboard-grid no-print">
     <div class="kpi-card"><div class="kpi-label">Total Orders</div><div class="kpi-value">${d.total}</div><div class="kpi-sub">Current date</div></div>
     <div class="kpi-card ok"><div class="kpi-label">Delivered</div><div class="kpi-value">${d.delivered}</div><div class="kpi-sub">${d.completion}% completion</div></div>
-    <div class="kpi-card ${d.urgent?'warn':''}"><div class="kpi-label">Urgent</div><div class="kpi-value">${d.urgent}</div><div class="kpi-sub">Latest Call ≤ 30 min</div></div>
+    <div class="kpi-card ${d.urgent?'warn':''}"><div class="kpi-label">Urgent</div><div class="kpi-value">${d.urgent}</div><div class="kpi-sub">Latest Call 鈮?30 min</div></div>
     <div class="kpi-card ${d.failed?'err':''}"><div class="kpi-label">Failed</div><div class="kpi-value">${d.failed}</div><div class="kpi-sub">Need review</div></div>
   </div>`;
 }
@@ -1338,13 +1501,13 @@ function renderExceptions(){
   const ex=findExceptions();
   if(!ex.length){
     el.innerHTML=`<div class="exception-box no-print">
-      <div class="exception-hdr"><strong>⚠ Exceptions / Risk Orders</strong><span class="badge">0</span></div>
+      <div class="exception-hdr"><strong>鈿?Exceptions / Risk Orders</strong><span class="badge">0</span></div>
       <div class="exception-list"><div class="ex-item"><span class="ex-tag ex-info">OK</span><div class="ex-main"><div class="ex-title">No major risk detected</div><div class="ex-detail">Current orders look normal based on available data.</div></div></div></div>
     </div>`;
     return;
   }
   el.innerHTML=`<div class="exception-box no-print">
-    <div class="exception-hdr"><strong>⚠ Exceptions / Risk Orders</strong><span class="badge">${ex.length}</span></div>
+    <div class="exception-hdr"><strong>鈿?Exceptions / Risk Orders</strong><span class="badge">${ex.length}</span></div>
     <div class="exception-list">${ex.slice(0,8).map(x=>`<div class="ex-item">
       <span class="ex-tag ${x.level==='critical'?'ex-critical':x.level==='warning'?'ex-warning':'ex-info'}">${x.tag}</span>
       <div class="ex-main"><div class="ex-title">${escHtml(x.title)}</div><div class="ex-detail">${escHtml(x.detail)}</div></div>
@@ -1354,9 +1517,10 @@ function renderExceptions(){
 function renderControlTower(){
   renderDashboard();
   renderExceptions();
+  renderDispatchBoard();
 }
 
-// ── ORDERS ──
+// 鈹€鈹€ ORDERS 鈹€鈹€
 function addRow(d){
   S.orders.push({id:S.nid++,orderNo:d?.orderNo||'',name:d?.name||'',address:d?.address||'',closeTime:d?.closeTime||'',serviceMin:parseInt(d?.serviceMin)||15,priority:d?.priority||'Medium',mode:d?.mode||'Point-to-Point',status:d?.status||'Pending',statusUpdatedAt:d?.statusUpdatedAt||'',statusUpdatedBy:d?.statusUpdatedBy||'',statusHistory:d?.statusHistory||[]});
   invalidatePlan();save();renderTable();
@@ -1376,31 +1540,30 @@ function doImp(){
   const lines=document.getElementById('csv-in').value.trim().split('\n').filter(l=>l.trim());let n=0;
   lines.forEach((line,i)=>{
     const p=line.split(',').map(s=>s.trim());if(p.length<2)return;
-    if(i===0&&(p[0].includes('号')||p[0].toLowerCase()==='no'))return;
-    const mode=(p[5]||'').includes('途')?'Multi-stop':'Point-to-Point';
+    const mode=(p[5]||'').toLowerCase().includes('multi')?'Multi-stop':'Point-to-Point';
     let pri='Medium';if((p[4]||'').includes('High'))pri='High';else if((p[4]||'').includes('Low'))pri='Low';
     addRow({orderNo:p[0],name:p[1],address:p[2]||'',closeTime:p[3]||'',serviceMin:15,priority:pri,mode});n++;
   });
-  document.getElementById('csv-in').value='';document.getElementById('imp-el').style.display='none';
-  alert('✓ Imported '+n+' rows');
+    if(i===0&&(p[0].toLowerCase().includes('order')||p[0].toLowerCase()==='no'))return;
+  alert('鉁?Imported '+n+' rows');
 }
 function renderTable(){
   const tb=document.getElementById('tbody');
-  document.getElementById('o-cnt').textContent=S.orders.length+' 单';
-  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">还没有Orders — 添加或导入</td></tr>';return}
+  document.getElementById('o-cnt').textContent=S.orders.length+' orders';
+  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">No orders yet - add or import orders</td></tr>';renderMobileOrders();renderControlTower();return}
   tb.innerHTML=S.orders.map((o,i)=>{
     const mc=o.mode==='Multi-stop'?'m-multi':'m-p2p';
     return`<tr>
       <td style="color:var(--hint);font-size:12px">${i+1}</td>
       <td><input class="ci" value="${o.orderNo}" onchange="setF(${o.id},'orderNo',this.value)" style="width:78px" placeholder="ORD-001"></td>
-      <td><input class="ci" value="${o.name}" onchange="setF(${o.id},'name',this.value)" placeholder="Customer名"></td>
-      <td><input class="ci" value="${o.address}" onchange="setF(${o.id},'address',this.value)" placeholder="完整Address"></td>
+      <td><input class="ci" value="${o.name}" onchange="setF(${o.id},'name',this.value)" placeholder="Customer鍚?></td>
+      <td><input class="ci" value="${o.address}" onchange="setF(${o.id},'address',this.value)" placeholder="瀹屾暣Address"></td>
       <td><input type="time" class="ci" value="${o.closeTime}" onchange="setF(${o.id},'closeTime',this.value)" style="width:72px"></td>
       <td><input type="number" class="ci" value="${o.serviceMin}" onchange="setF(${o.id},'serviceMin',this.value)" style="width:50px" min="5" step="5"></td>
       <td><select class="pri-s" onchange="setF(${o.id},'priority',this.value)">${['High','Medium','Low'].map(p=>'<option'+(o.priority===p?' selected':'')+'>'+p+'</option>').join('')}</select></td>
       <td><select class="status-s" onchange="setF(${o.id},'status',this.value)">${renderStatusOptions(o.status)}</select></td>
       <td><button class="${mc} mode-btn" onclick="togMode(${o.id})">${o.mode}</button></td>
-      <td><button class="btn-del" onclick="delRow(${o.id})">✕</button></td>
+      <td><button class="btn-del" onclick="delRow(${o.id})">鉁?/button></td>
     </tr>`}).join('');
   renderMobileOrders();
   renderControlTower();
@@ -1415,12 +1578,12 @@ function validateDepotAddress(){
   return true;
 }
 
-// ── GENERATE ──
+// 鈹€鈹€ GENERATE 鈹€鈹€
 async function generate(){
   if(!S.orders.length){alert('Please add orders first');return}
   if(!validateDepotAddress())return;
   const btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note');
-  btn.disabled=true;btn.textContent='⏳ 规划Medium...';
+  btn.disabled=true;btn.textContent='鈴?瑙勫垝Medium...';
   try{
     if(!S.apiKey)throw new Error('Please configure Google Maps API Key in Settings first');
     note.textContent='Loading Google Maps...';
@@ -1429,8 +1592,7 @@ async function generate(){
     const depot=DEPOTS[S.depotIdx];
     const depotAddr=depot.addr||depot.name;
 
-    // Phase 1: Distance Matrix（直接用Address字符串，不需要 geocoding）
-    note.textContent='Calculating traffic driving time...（Orders较多会自动分批）';
+    // Phase 1: Distance Matrix锛堢洿鎺ョ敤Address瀛楃涓诧紝涓嶉渶瑕?geocoding锛?    note.textContent='Calculating traffic driving time...锛圤rders杈冨浼氳嚜鍔ㄥ垎鎵癸級';
     const orderAddrs=S.orders.map(o=>o.address||o.name);
     const dm=await getDistMatrix(depotAddr,orderAddrs);
 
@@ -1465,20 +1627,20 @@ async function generate(){
     }
 
     _plan={p2p,route:routeResult,depotCoord:null,depotName:depot.name};
-    note.textContent='✓ Plan generated';
-    btn.disabled=false;btn.textContent='🔄 Generate Plan';
+    note.textContent='鉁?Plan generated';
+    btn.disabled=false;btn.textContent='馃攧 Generate Plan';
     renderResults();
     await cloudSaveNow();
 
-    // Phase 2: Geocoding for map（后台异步，不阻塞结果）
-    note.textContent='✓ Plan generated · loading map markers...';
+    // Phase 2: Geocoding for map锛堝悗鍙板紓姝ワ紝涓嶉樆濉炵粨鏋滐級
+    note.textContent='鉁?Plan generated 路 loading map markers...';
     await loadMapAsync(depotAddr);
-    note.textContent='✓ Plan generated';
+    note.textContent='鉁?Plan generated';
 
   }catch(e){
     alert('Planning failed: '+e.message);
     note.textContent='Planning error';
-    btn.disabled=false;btn.textContent='🔄 Generate Plan';
+    btn.disabled=false;btn.textContent='馃攧 Generate Plan';
   }
 }
 
@@ -1489,7 +1651,7 @@ async function loadMapAsync(depotAddr){
     const mapsLink='https://www.google.com/maps/dir/'+[depotAddr,...allItems.map(o=>o.address||o.name)].map(a=>encodeURIComponent(a)).join('/');
     if(!depotCoord){
       document.getElementById('map-wrap').style.display='block';
-      document.getElementById('map').innerHTML='<div class="map-placeholder">Map location requires Geocoding API (optional)<br>Core functions are not affected<br><br><a href="'+mapsLink+'" target="_blank" style="color:var(--ok)">📍 View full route in Google Maps →</a></div>';
+      document.getElementById('map').innerHTML='<div class="map-placeholder">Map location requires Geocoding API (optional)<br>Core functions are not affected<br><br><a href="'+mapsLink+'" target="_blank" style="color:var(--ok)">馃搷 View full route in Google Maps 鈫?/a></div>';
       return;
     }
     _plan.depotCoord=depotCoord;
@@ -1507,7 +1669,7 @@ async function loadMapAsync(depotAddr){
     _markers.push(new google.maps.Marker({
       position:depotCoord,map:_map,
       icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:'#1a56db',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:10},
-      label:{text:'仓',color:'#fff',fontSize:'10px',fontWeight:'700'},
+      label:{text:'D',color:'#fff',fontSize:'10px',fontWeight:'700'},
       title:_plan.depotName,zIndex:100
     }));
     for(let i=0;i<allItems.length;i++){
@@ -1526,10 +1688,9 @@ async function loadMapAsync(depotAddr){
       const iw=new google.maps.InfoWindow({
         content:`<div style="font-family:sans-serif;font-size:13px;line-height:1.6;min-width:180px">
           <strong>${o.name}</strong>${o.orderNo?' <small style="color:#999">('+o.orderNo+')</small>':''}
-          <br><span style="color:#636358">${o.address||'—'}</span>
-          ${o.dist!=null?'<br>🚗 '+o.dist+'km · '+o.transit+'分'+(o.hasTraffic?' (Traffic Included)':''):''}
-          ${o.closeTime?'<br>🕐 Close '+o.closeTime:''}
-          ${o.latestCall!=null?'<br>📞 <strong>Latest call '+m2t(o.latestCall)+'</strong>':''}
+          <br><span style="color:#636358">${o.address||'-'}</span>
+          ${o.dist!=null?'<br>Distance '+o.dist+'km - '+o.transit+' min'+(o.hasTraffic?' (Traffic Included)':''):''}
+          ${o.latestCall!=null?'<br>馃摓 <strong>Latest call '+m2t(o.latestCall)+'</strong>':''}
         </div>`
       });
       mk.addListener('click',()=>iw.open(_map,mk));
@@ -1573,7 +1734,7 @@ function optimizeRoute(orders,matrix,departMin){
 }
 
 
-// ── RENDER RESULTS ──
+// 鈹€鈹€ RENDER RESULTS 鈹€鈹€
 
 function getPlanItemsForMap(){
   if(!_plan)return [];
@@ -1595,9 +1756,9 @@ function renderRouteTools(){
   el.innerHTML=`<div class="route-tools">
     <div>
       <div class="rt-title">Route Overview</div>
-      <div class="rt-sub">${items.length} stops · ${p2p} point-to-point · ${route} multi-stop</div>
+      <div class="rt-sub">${items.length} stops 路 ${p2p} point-to-point 路 ${route} multi-stop</div>
     </div>
-    <a href="${url}" target="_blank"><button>🗺 Open Route in Google Maps</button></a>
+    <a href="${url}" target="_blank"><button>馃椇 Open Route in Google Maps</button></a>
   </div>`;
 }
 
@@ -1625,11 +1786,11 @@ function renderP2P(){
   const most=p2p[0];
   const mostRemain=most.latestCall!=null?most.latestCall-now:9999;
   if(mostRemain<0){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${m2t(most.latestCall)}），please handle immediately!</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">鈿?<div><strong>${most.name}</strong> is past the planned latest call time锛?{m2t(most.latestCall)}锛夛紝please handle immediately!</div></div>`;
   }else if(mostRemain<30){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${m2t(most.latestCall)}</strong> (remaining ${mostRemain} minutes)</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">馃敶 <div>Next urgent: <strong>${most.name}</strong> 鈥?Call before <strong>${m2t(most.latestCall)}</strong> (remaining ${mostRemain} minutes)</div></div>`;
   }else{
-    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${m2t(most.latestCall)} (remaining ${Math.floor(mostRemain/60)}h${mostRemain%60}m）</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-ok">鉁?<div>Nearest order: <strong>${most.name}</strong> 鈥?${m2t(most.latestCall)} (remaining ${Math.floor(mostRemain/60)}h${mostRemain%60}m锛?/div></div>`;
   }
 
   list.innerHTML=p2p.map((o,i)=>{
@@ -1646,19 +1807,19 @@ function renderP2P(){
         <div class="d-top">
           <span class="d-name">${o.name}</span>
           ${o.orderNo?'<span class="badge">'+o.orderNo+'</span>':''}
-          <span class="st-pill ${statusClass(o.status||'Pending')}">${o.status||'Pending'}</span>${o.statusUpdatedAt?`<span class="status-time">by ${escHtml(o.statusUpdatedBy||"Unknown")} · ${fmtDateTime(o.statusUpdatedAt)}</span>`:""}
+          <span class="st-pill ${statusClass(o.status||'Pending')}">${o.status||'Pending'}</span>${o.statusUpdatedAt?`<span class="status-time">by ${escHtml(o.statusUpdatedBy||"Unknown")} 路 ${fmtDateTime(o.statusUpdatedAt)}</span>`:""}
           <span class="pill ${pCls}">${urgLabel}</span>
           <span class="mode-btn m-p2p" style="cursor:default">Point-to-Point</span>
         </div>
-        <div class="d-addr" title="${o.address}">📍 ${o.address||'— Address missing —'}</div>
+        <div class="d-addr" title="${o.address}">${o.address||'Address missing'}</div>
         <div class="d-stats">
-          ${o.dist!=null?`<span>🚗 <strong>${o.dist} km</strong> · ${o.transit}分${o.hasTraffic?' (with traffic)':''}</span>`:''}
-          <span>🕐 Close <strong>${o.closeTime||'—'}</strong></span>
-          <span>⏱ Lalamove pickup ${pickup}分</span>
+          ${o.dist!=null?`<span>馃殫 <strong>${o.dist} km</strong> 路 ${o.transit}鍒?{o.hasTraffic?' (with traffic)':''}</span>`:''}
+          <span>Close <strong>${o.closeTime||'-'}</strong></span>
+          <span>鈴?Lalamove pickup ${pickup}鍒?/span>
         </div>
         <div class="d-call-row">
           <span style="font-size:12px;color:var(--muted)">Latest Call</span>
-          <span class="d-call ${urg}">${lc!=null?m2t(lc):'—'}</span>
+          <span class="d-call ${urg}">${lc!=null?m2t(lc):'-'}</span>
           <span class="d-remain">${remain>0?'Remaining '+(remain>=60?Math.floor(remain/60)+'h':'')+(remain%60)+'m':'Overdue'}</span>
           <div class="d-bar"><div class="d-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
         </div>
@@ -1676,8 +1837,8 @@ function renderRoute(){
   el.innerHTML=`<div class="sec-lbl">Multi-stop Route (Own Vehicle)</div>
     <div class="route-section">
       <div class="route-hdr">
-        <div class="fr"><strong style="font-size:13px">🟢 Multi-stop Route</strong><span class="badge">${r.length} stops</span><span style="font-size:12px;color:var(--muted)">Depart ${S.departTime} → Finish ${m2t(endTime)}</span></div>
-        <div class="fr"><a href="${mapsUrl}" target="_blank" style="text-decoration:none"><button style="font-size:12px">🗺 Maps Navigation</button></a></div>
+        <div class="fr"><strong style="font-size:13px">馃煝 Multi-stop Route</strong><span class="badge">${r.length} stops</span><span style="font-size:12px;color:var(--muted)">Depart ${S.departTime} 鈫?Finish ${m2t(endTime)}</span></div>
+        <div class="fr"><a href="${mapsUrl}" target="_blank" style="text-decoration:none"><button style="font-size:12px">馃椇 Maps Navigation</button></a></div>
       </div>
       <div class="route-body">${r.map((o,i)=>{
         const sc=o.status==='ok'?'ok':o.status==='warn'?'warn':'late';
@@ -1685,9 +1846,9 @@ function renderRoute(){
           <div class="r-n ${sc}">${i+1}</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:500;font-size:13px">${o.name}${o.orderNo?' <span class="badge">'+o.orderNo+'</span>':''}</div>
-            <div style="font-size:12px;color:var(--muted)">${o.address||'—'}</div>
+            <div style="font-size:12px;color:var(--muted)">${o.address||'-'}</div>
             <div style="font-size:12px;color:var(--muted);margin-top:3px">
-              Arrive <strong style="color:var(--txt)">${m2t(o.arr)}</strong> · Leave ${m2t(o.lv)} · Open until ${o.closeTime||'—'}
+              Arrive <strong style="color:var(--txt)">${m2t(o.arr)}</strong> - Leave ${m2t(o.lv)} - Open until ${o.closeTime||'-'}
             </div>
           </div>
         </div>`}).join('')}</div>
@@ -1698,7 +1859,7 @@ function updateUrgency(){
   if(_plan?.p2p?.length)renderP2P();
 }
 
-// ── EXPORT ──
+// 鈹€鈹€ EXPORT 鈹€鈹€
 function doExport(){
   if(!window.XLSX){alert('Loading');return}
   const wb=XLSX.utils.book_new();
@@ -1720,7 +1881,7 @@ function doExport(){
   XLSX.writeFile(wb,`X-Motors_${S.date}.xlsx`);
 }
 
-// ── SETTINGS ──
+// 鈹€鈹€ SETTINGS 鈹€鈹€
 function showSet(){
   document.getElementById('si-key').value=S.apiKey;
   const a0=document.getElementById('si-addr-0'); if(a0)a0.value=DEPOTS[0].addr||'';
@@ -1742,7 +1903,7 @@ function saveSet(){
 }
 function updateApiDot(){
   const d=document.getElementById('api-dot'),l=document.getElementById('api-lbl');
-  if(S.apiKey){d.className='dot ok';l.textContent='Maps API ✓';l.style.color='var(--ok)'}
+  if(S.apiKey){d.className='dot ok';l.textContent='Maps API configured';l.style.color='var(--ok)'}
   else{d.className='dot no';l.textContent='Maps API not configured';l.style.color='var(--hint)'}
 }
 
@@ -1776,13 +1937,13 @@ function setupSidebarV17(){
   }
 }
 
-// ── INIT ──
+// 鈹€鈹€ INIT 鈹€鈹€
 load();
 document.getElementById('f-date').value=S.date||todayStr();
 const opEl=document.getElementById('f-operator'); if(opEl){S.operator=S.operator||localStorage.getItem('xmd_operator')||'';opEl.value=S.operator;}
 document.getElementById('f-traffic').value=S.trafficTime||'08:00';
 document.getElementById('f-depot').value=S.depotIdx;
-setupSidebarV17();updateApiDot();renderTable();renderControlTower();updateClock();
+setupSidebarV17();updateApiDot();renderTable();renderControlTower();showView('dashboard');updateClock();
 setInterval(updateClock,30000);
 setInterval(updateUrgency,60000);
 </script>
@@ -1807,7 +1968,7 @@ setInterval(updateUrgency,60000);
         subscribePlan();
         setTimeout(function(){
           if(_syncStats.snapshots===0){
-            console.warn('[Sync] No snapshots received after 10s — check Firestore Rules');
+            console.warn('[Sync] No snapshots received after 10s 鈥?check Firestore Rules');
             setSyncStatus('Sync: no data (check Firestore Rules)','err');
           }
         },10000);
@@ -1834,3 +1995,8 @@ setInterval(updateUrgency,60000);
 
 </body>
 </html>
+
+
+
+
+
