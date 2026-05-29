@@ -250,6 +250,29 @@ tbody tr:hover td{background:#fafaf8}
   .d-addr{white-space:normal;overflow:visible;text-overflow:clip}
 }
 
+
+/* Mobile editable fields */
+.mo-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mo-edit-grid .full{grid-column:1 / -1}
+.mo-edit-field label{display:block;font-size:10px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.mo-edit-field input,.mo-edit-field select,.mo-edit-field textarea{
+  width:100%;border:1px solid var(--bd);border-radius:var(--rs);padding:7px 8px;
+  font-size:13px;font-family:inherit;background:var(--card);color:var(--txt)
+}
+.mo-edit-field textarea{min-height:56px;resize:vertical;line-height:1.35}
+.mo-card.editable{border-left:3px solid var(--bd2)}
+.mo-card.modified{border-left-color:var(--warn)}
+.mo-small-note{font-size:10px;color:var(--hint);margin-top:6px}
+@media(max-width:760px){
+  .mo-actions{align-items:stretch}
+  .mo-actions button{flex:1;justify-content:center}
+  .mo-edit-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:420px){
+  .mo-edit-grid{grid-template-columns:1fr}
+  .mo-edit-grid .full{grid-column:auto}
+}
+
 </style>
 </head>
 <body>
@@ -325,7 +348,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v13 · Local Date + Move/Copy</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v14 · Mobile Full Edit</div>
 </div>
 
 <!-- Settings -->
@@ -846,6 +869,18 @@ function invalidatePlan(){
 }
 
 
+
+function escHtml(v){
+  return String(v??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escAttr(v){return escHtml(v)}
+function renderPriorityOptions(cur){
+  return ['High','Medium','Low'].map(p=>'<option'+((cur||'Medium')===p?' selected':'')+'>'+p+'</option>').join('');
+}
+function renderModeOptions(cur){
+  return ['Point-to-Point','Multi-stop'].map(m=>'<option'+((cur||'Point-to-Point')===m?' selected':'')+'>'+m+'</option>').join('');
+}
+
 const ORDER_STATUSES=['Pending','Preparing','Called Driver','Picked Up','Delivered','Failed / Reschedule'];
 function statusClass(s){
   if(s==='Preparing')return 'st-preparing';
@@ -873,30 +908,72 @@ function getPlannedIndex(orderId){
 function renderMobileOrders(){
   const el=document.getElementById('mobile-orders');
   if(!el)return;
-  if(!S.orders.length){el.innerHTML='<div class="empty-row">No orders yet — add or import orders</div>';return}
+  if(!S.orders.length){
+    el.innerHTML='<div class="empty-row">No orders yet — add or import orders</div>';
+    return;
+  }
   el.innerHTML=S.orders.map((o,i)=>{
     const st=o.status||'Pending';
-    const mc=o.mode==='Multi-stop'||o.mode==='途径'?'m-multi':'m-p2p';
     const planIdx=getPlannedIndex(o.id);
-    return `<div class="mo-card">
+    const distInfo=(_plan?[...(_plan.p2p||[]),...(_plan.route||[])].find(x=>String(x.id)===String(o.id)):null);
+    return `<div class="mo-card editable">
       <div class="mo-top">
         <div>
-          <div class="mo-title">${i+1}. ${o.name||'Unnamed customer'}</div>
-          <div class="mo-sub">${o.orderNo||'No order number'}</div>
+          <div class="mo-title">${i+1}. ${escHtml(o.name||'Unnamed customer')}</div>
+          <div class="mo-sub">${escHtml(o.orderNo||'No order number')}</div>
         </div>
-        ${planIdx?`<span class="badge">Plan #${planIdx}</span>`:""}<span class="st-pill ${statusClass(st)}">${st}</span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
+          ${planIdx?`<span class="badge">Plan #${planIdx}</span>`:""}
+          <span class="st-pill ${statusClass(st)}">${escHtml(st)}</span>
+        </div>
       </div>
-      <div class="mo-addr">📍 ${o.address||'No address'}</div>
+
+      ${distInfo&&distInfo.latestCallMs?`
       <div class="mo-grid">
-        <div class="mo-field"><span>Close</span><strong>${o.closeTime||'—'}</strong></div>
-        <div class="mo-field"><span>Priority</span><strong>${o.priority||'Medium'}</strong></div>
-        <div class="mo-field"><span>Mode</span><strong>${o.mode||'Point-to-Point'}</strong></div>
-        <div class="mo-field"><span>Service</span><strong>${o.serviceMin||15} min</strong></div>
+        <div class="mo-field"><span>Latest Call</span><strong>${msToClock(distInfo.latestCallMs)}</strong></div>
+        <div class="mo-field"><span>Remaining</span><strong>${msRemainingText(distInfo.latestCallMs)}</strong></div>
+      </div>`:''}
+
+      <div class="mo-edit-grid">
+        <div class="mo-edit-field">
+          <label>Order No.</label>
+          <input value="${escAttr(o.orderNo||'')}" onchange="setF(${o.id},'orderNo',this.value)" placeholder="ORD-001">
+        </div>
+        <div class="mo-edit-field">
+          <label>Customer</label>
+          <input value="${escAttr(o.name||'')}" onchange="setF(${o.id},'name',this.value)" placeholder="Customer name">
+        </div>
+        <div class="mo-edit-field full">
+          <label>Address</label>
+          <textarea onchange="setF(${o.id},'address',this.value)" placeholder="Full address">${escHtml(o.address||'')}</textarea>
+        </div>
+        <div class="mo-edit-field">
+          <label>Close Time</label>
+          <input type="time" value="${escAttr(o.closeTime||'')}" onchange="setF(${o.id},'closeTime',this.value)">
+        </div>
+        <div class="mo-edit-field">
+          <label>Service Min</label>
+          <input type="number" value="${escAttr(o.serviceMin||15)}" min="5" step="5" onchange="setF(${o.id},'serviceMin',this.value)">
+        </div>
+        <div class="mo-edit-field">
+          <label>Priority</label>
+          <select onchange="setF(${o.id},'priority',this.value)">${renderPriorityOptions(o.priority)}</select>
+        </div>
+        <div class="mo-edit-field">
+          <label>Status</label>
+          <select onchange="setF(${o.id},'status',this.value)">${renderStatusOptions(st)}</select>
+        </div>
+        <div class="mo-edit-field full">
+          <label>Delivery Mode</label>
+          <select onchange="setF(${o.id},'mode',this.value)">${renderModeOptions(o.mode)}</select>
+        </div>
       </div>
+
       <div class="mo-actions">
-        <select onchange="setF(${o.id},'status',this.value)">${renderStatusOptions(st)}</select>
-        <button onclick="openNav('${String(o.address||'').replace(/'/g,"\\'")}')">🗺 Navigate</button>
+        <button onclick="openNav('${String(o.address||'').replace(/'/g,"\'")}')">🗺 Navigate</button>
+        <button onclick="delRow(${o.id})" style="color:var(--err)">Delete</button>
       </div>
+      <div class="mo-small-note">Changes save automatically after editing a field.</div>
     </div>`;
   }).join('');
 }
@@ -907,7 +984,7 @@ function addRow(d){
   invalidatePlan();save();renderTable();
 }
 function delRow(id){S.orders=S.orders.filter(o=>o.id!==id);invalidatePlan();save();renderTable()}
-function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status'&&k!=='priority')invalidatePlan();save();renderTable();
+function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status')invalidatePlan();save();renderTable();
   if(_plan&&k==='status'){
     const items=[...(_plan.p2p||[]),...(_plan.route||[])];
     const pi=items.find(x=>String(x.id)===String(id));
