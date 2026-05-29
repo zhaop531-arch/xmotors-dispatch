@@ -273,6 +273,67 @@ tbody tr:hover td{background:#fafaf8}
   .mo-edit-grid .full{grid-column:auto}
 }
 
+
+/* v15 Dashboard + Sidebar */
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.kpi-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
+.kpi-label{font-size:10px;color:var(--hint);text-transform:uppercase;letter-spacing:.06em}
+.kpi-value{font-size:22px;font-weight:700;line-height:1.2;margin-top:4px}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi-card.warn{border-left:4px solid var(--warn)}
+.kpi-card.err{border-left:4px solid var(--err)}
+.kpi-card.ok{border-left:4px solid var(--ok)}
+.exception-box{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.exception-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--bd)}
+.exception-hdr strong{font-size:13px}
+.exception-list{padding:6px 0}
+.ex-item{display:flex;gap:10px;align-items:flex-start;padding:9px 14px;border-bottom:1px solid var(--bd)}
+.ex-item:last-child{border-bottom:none}
+.ex-tag{font-size:10px;border-radius:20px;padding:2px 7px;font-weight:600;white-space:nowrap}
+.ex-critical{background:var(--err-bg);color:var(--err)}
+.ex-warning{background:var(--warn-bg);color:var(--warn)}
+.ex-info{background:var(--bg);color:var(--muted)}
+.ex-main{flex:1;min-width:0}
+.ex-title{font-size:13px;font-weight:600}
+.ex-detail{font-size:12px;color:var(--muted);margin-top:2px;word-break:break-word}
+.quick-nav{position:fixed;right:14px;bottom:14px;z-index:150;background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:0 6px 22px rgba(0,0,0,.12);overflow:hidden}
+.quick-nav button{border:none;border-bottom:1px solid var(--bd);border-radius:0;width:120px;justify-content:flex-start;background:var(--card);font-size:12px}
+.quick-nav button:last-child{border-bottom:none}
+.quick-nav button:hover{background:var(--bg)}
+.quick-toggle{display:none;position:fixed;right:14px;bottom:14px;z-index:151;border-radius:50%;width:48px;height:48px;align-items:center;justify-content:center;background:var(--accent);color:#fff;border:none;box-shadow:0 6px 22px rgba(0,0,0,.18)}
+.quick-toggle:hover{background:#333}
+.mobile-drawer{display:none}
+.drawer-mask{display:none}
+@media(max-width:760px){
+  .dashboard-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpi-card{padding:9px 10px}
+  .kpi-value{font-size:20px}
+  .quick-nav{display:none}
+  .quick-toggle{display:flex}
+  .drawer-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:250}
+  .drawer-mask.open{display:block}
+  .mobile-drawer{display:block;position:fixed;right:-280px;top:0;bottom:0;width:260px;background:var(--card);z-index:260;box-shadow:-8px 0 24px rgba(0,0,0,.18);transition:right .18s ease;padding:14px}
+  .mobile-drawer.open{right:0}
+  .drawer-title{font-weight:700;font-size:14px;margin-bottom:12px}
+  .drawer-btn{width:100%;justify-content:flex-start;margin-bottom:8px;min-height:40px}
+  .drawer-close{width:100%;justify-content:center;margin-top:8px}
+  .exception-hdr{padding:9px 12px}
+  .ex-item{padding:9px 12px}
+}
+
+
+/* v16 Operator + status history */
+.hist-line{font-size:11px;color:var(--muted);margin-top:4px}
+.hist-line strong{color:var(--txt);font-weight:600}
+.hist-box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 8px;margin-top:8px;font-size:11px;color:var(--muted);line-height:1.45}
+.hist-item{padding:3px 0;border-bottom:1px solid var(--bd)}
+.hist-item:last-child{border-bottom:none}
+.hist-op{font-weight:600;color:var(--txt)}
+.status-time{font-size:10px;color:var(--hint);margin-left:3px}
+@media(max-width:760px){
+  .hist-box{font-size:11px}
+}
+
 </style>
 </head>
 <body>
@@ -282,6 +343,7 @@ tbody tr:hover td{background:#fafaf8}
   <span class="logo">X-Motors <span>Delivery Planning</span></span>
   <div class="hdr-fields">
     <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="switchViewDate(this.value)"></div>
+    <div class="fi"><span>Operator</span><input id="f-operator" placeholder="Name" onchange="S.operator=this.value;saveOperatorLocal();saveLocal()" title="Used for status history"></div>
     <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save()" title="Used by Google Maps to estimate driving time for future plans"></div>
     <div class="fi"><span>Dispatch Warehouse</span>
       <select id="f-depot" onchange="S.depotIdx=+this.value;save()">
@@ -301,7 +363,10 @@ tbody tr:hover td{background:#fafaf8}
   </div>
 </div>
 
-<div class="tbl-bar no-print">
+<div id="top"></div>
+<div id="dashboard-el"></div>
+<div id="exception-el"></div>
+<div class="tbl-bar no-print" id="orders-section">
   <div class="fr">
     <span style="font-weight:600;font-size:13px">Today's Orders</span>
     <span class="badge" id="o-cnt">0</span>
@@ -340,15 +405,37 @@ tbody tr:hover td{background:#fafaf8}
   <span class="gen-note" id="gen-note">Calculate optimal dispatch sequence based on Google Maps live traffic</span>
 </div>
 
+<div id="plan-section"></div>
 <div id="route-tools"></div>
 <div class="mobile-map-note">Map auto-loads when plan is generated or synced. Use "Open Route in Google Maps" if embedded map is slow.</div>
+<div id="map-section"></div>
 <div id="map-wrap" style="display:none"><div id="map"></div></div>
 <div id="alert-el"></div>
 <div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v14 · Mobile Full Edit</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v16 · Operator + Status History</div>
+</div>
+
+
+<div class="quick-nav no-print">
+  <button onclick="scrollToSec('top')">📊 Dashboard</button>
+  <button onclick="scrollToSec('exception-el')">⚠ Exceptions</button>
+  <button onclick="scrollToSec('plan-section')">🧭 Plan</button>
+  <button onclick="scrollToSec('orders-section')">📝 Orders</button>
+  <button onclick="scrollToSec('map-section')">🗺 Map</button>
+</div>
+<button class="quick-toggle no-print" onclick="openDrawer()">☰</button>
+<div class="drawer-mask no-print" id="drawer-mask" onclick="closeDrawer()"></div>
+<div class="mobile-drawer no-print" id="mobile-drawer">
+  <div class="drawer-title">Quick Navigation</div>
+  <button class="drawer-btn" onclick="scrollToSec('top');closeDrawer()">📊 Dashboard</button>
+  <button class="drawer-btn" onclick="scrollToSec('exception-el');closeDrawer()">⚠ Exceptions</button>
+  <button class="drawer-btn" onclick="scrollToSec('plan-section');closeDrawer()">🧭 Plan Result</button>
+  <button class="drawer-btn" onclick="scrollToSec('orders-section');closeDrawer()">📝 Edit Orders</button>
+  <button class="drawer-btn" onclick="scrollToSec('map-section');closeDrawer()">🗺 Map</button>
+  <button class="drawer-close" onclick="closeDrawer()">Close</button>
 </div>
 
 <!-- Settings -->
@@ -395,7 +482,7 @@ const DEPOTS=[
   {name:'BCS-2 PIK 2', addr:'PIK 2, Tangerang, Banten'}
 ];
 
-let S={apiKey:'',depotIdx:0,date:todayStr(),trafficTime:'08:00',pickupMin:20,departTime:'08:00',orders:[],nid:1};
+let S={apiKey:'',depotIdx:0,date:todayStr(),trafficTime:'08:00',pickupMin:20,departTime:'08:00',operator:'',orders:[],nid:1};
 let _map=null, _markers=[], _plan=null;
 
 function todayStr(){return new Date().toISOString().slice(0,10)}
@@ -513,6 +600,7 @@ function clearPlanResults(){
   const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
   const lbl=document.getElementById('p2p-lbl'); if(lbl)lbl.style.display='none';
   const rt=document.getElementById('route-tools'); if(rt)rt.innerHTML='';
+  if(typeof renderControlTower==='function')renderControlTower();
 }
 
 function applyRemoteData(data){
@@ -870,6 +958,38 @@ function invalidatePlan(){
 
 
 
+
+function currentOperator(){
+  return (S.operator||localStorage.getItem('xmd_operator')||'Unknown').trim()||'Unknown';
+}
+function saveOperatorLocal(){
+  try{localStorage.setItem('xmd_operator',S.operator||'')}catch(e){}
+}
+function fmtDateTime(iso){
+  if(!iso)return '—';
+  const d=new Date(iso);
+  if(isNaN(d.getTime()))return '—';
+  return d.toLocaleString('en',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function addStatusHistory(order,fromStatus,toStatus){
+  const nowIso=new Date().toISOString();
+  order.statusUpdatedAt=nowIso;
+  order.statusUpdatedBy=currentOperator();
+  order.statusHistory=Array.isArray(order.statusHistory)?order.statusHistory:[];
+  order.statusHistory.unshift({
+    from:fromStatus||'',
+    to:toStatus||'Pending',
+    at:nowIso,
+    by:currentOperator()
+  });
+  order.statusHistory=order.statusHistory.slice(0,8);
+}
+function renderStatusHistory(order){
+  const h=Array.isArray(order.statusHistory)?order.statusHistory:[];
+  if(!h.length)return '<div class="hist-line">No status history yet</div>';
+  return `<div class="hist-box">${h.slice(0,4).map(x=>`<div class="hist-item"><span class="hist-op">${escHtml(x.by||'Unknown')}</span>: ${escHtml(x.from||'—')} → <strong>${escHtml(x.to||'Pending')}</strong><br><span>${fmtDateTime(x.at)}</span></div>`).join('')}</div>`;
+}
+
 function escHtml(v){
   return String(v??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -924,7 +1044,7 @@ function renderMobileOrders(){
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
           ${planIdx?`<span class="badge">Plan #${planIdx}</span>`:""}
-          <span class="st-pill ${statusClass(st)}">${escHtml(st)}</span>
+          <span class="st-pill ${statusClass(st)}">${escHtml(st)}</span>${o.statusUpdatedAt?`<div class="hist-line">by <strong>${escHtml(o.statusUpdatedBy||"Unknown")}</strong> · ${fmtDateTime(o.statusUpdatedAt)}</div>`:""}
         </div>
       </div>
 
@@ -969,6 +1089,8 @@ function renderMobileOrders(){
         </div>
       </div>
 
+      ${renderStatusHistory(o)}
+
       <div class="mo-actions">
         <button onclick="openNav('${String(o.address||'').replace(/'/g,"\'")}')">🗺 Navigate</button>
         <button onclick="delRow(${o.id})" style="color:var(--err)">Delete</button>
@@ -978,13 +1100,118 @@ function renderMobileOrders(){
   }).join('');
 }
 
+
+function scrollToSec(id){
+  const el=document.getElementById(id);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openDrawer(){
+  const d=document.getElementById('mobile-drawer'),m=document.getElementById('drawer-mask');
+  if(d)d.classList.add('open');
+  if(m)m.classList.add('open');
+}
+function closeDrawer(){
+  const d=document.getElementById('mobile-drawer'),m=document.getElementById('drawer-mask');
+  if(d)d.classList.remove('open');
+  if(m)m.classList.remove('open');
+}
+function getAllPlanItems(){
+  return _plan?[...(_plan.p2p||[]),...(_plan.route||[])]:[];
+}
+function getOrderPlanInfo(orderId){
+  const items=getAllPlanItems();
+  return items.find(x=>String(x.id)===String(orderId))||null;
+}
+function buildDashboardData(){
+  const orders=S.orders||[];
+  const statusCounts={};
+  ORDER_STATUSES.forEach(s=>statusCounts[s]=0);
+  orders.forEach(o=>{statusCounts[o.status||'Pending']=(statusCounts[o.status||'Pending']||0)+1});
+  const delivered=statusCounts['Delivered']||0;
+  const failed=statusCounts['Failed / Reschedule']||0;
+  const total=orders.length;
+  const completion=total?Math.round(delivered/total*100):0;
+  const urgent=orders.filter(o=>{
+    const p=getOrderPlanInfo(o.id);
+    if(!p || !p.latestCallMs)return false;
+    const r=minutesRemaining(p.latestCallMs);
+    return r<=30 && (o.status||'Pending')!=='Delivered';
+  }).length;
+  return {total,delivered,failed,completion,urgent,statusCounts};
+}
+function findExceptions(){
+  const out=[];
+  (S.orders||[]).forEach((o,i)=>{
+    const st=o.status||'Pending';
+    const p=getOrderPlanInfo(o.id);
+    const title=(o.name||o.orderNo||('Order '+(i+1)));
+    if(!o.address){
+      out.push({level:'critical',tag:'ADDRESS',title,detail:'Missing address. Google Maps cannot calculate route.'});
+    }else if(String(o.address).length<10){
+      out.push({level:'warning',tag:'ADDRESS',title,detail:'Address may be too short. Please use full address with city/country.'});
+    }
+    if(!o.closeTime){
+      out.push({level:'warning',tag:'TIME',title,detail:'Missing close time. Latest Call cannot be calculated.'});
+    }
+    if(st==='Failed / Reschedule'){
+      out.push({level:'critical',tag:'FAILED',title,detail:'Order marked as Failed / Reschedule.'});
+    }
+    if(p && p.latestCallMs && st!=='Delivered'){
+      const r=minutesRemaining(p.latestCallMs);
+      if(r<0){
+        out.push({level:'critical',tag:'OVERDUE',title,detail:'Latest Call already passed: '+msToClock(p.latestCallMs)});
+      }else if(r<=30){
+        out.push({level:'warning',tag:'URGENT',title,detail:'Latest Call soon: '+msToClock(p.latestCallMs)+' · remaining '+msRemainingText(p.latestCallMs)});
+      }
+    }
+    if(_plan && !p){
+      out.push({level:'info',tag:'PLAN',title,detail:'This order is not included in current generated plan. Regenerate plan if order was edited.'});
+    }
+  });
+  return out;
+}
+function renderDashboard(){
+  const el=document.getElementById('dashboard-el');
+  if(!el)return;
+  const d=buildDashboardData();
+  el.innerHTML=`<div class="dashboard-grid no-print">
+    <div class="kpi-card"><div class="kpi-label">Total Orders</div><div class="kpi-value">${d.total}</div><div class="kpi-sub">Current date</div></div>
+    <div class="kpi-card ok"><div class="kpi-label">Delivered</div><div class="kpi-value">${d.delivered}</div><div class="kpi-sub">${d.completion}% completion</div></div>
+    <div class="kpi-card ${d.urgent?'warn':''}"><div class="kpi-label">Urgent</div><div class="kpi-value">${d.urgent}</div><div class="kpi-sub">Latest Call ≤ 30 min</div></div>
+    <div class="kpi-card ${d.failed?'err':''}"><div class="kpi-label">Failed</div><div class="kpi-value">${d.failed}</div><div class="kpi-sub">Need review</div></div>
+  </div>`;
+}
+function renderExceptions(){
+  const el=document.getElementById('exception-el');
+  if(!el)return;
+  const ex=findExceptions();
+  if(!ex.length){
+    el.innerHTML=`<div class="exception-box no-print">
+      <div class="exception-hdr"><strong>⚠ Exceptions / Risk Orders</strong><span class="badge">0</span></div>
+      <div class="exception-list"><div class="ex-item"><span class="ex-tag ex-info">OK</span><div class="ex-main"><div class="ex-title">No major risk detected</div><div class="ex-detail">Current orders look normal based on available data.</div></div></div></div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div class="exception-box no-print">
+    <div class="exception-hdr"><strong>⚠ Exceptions / Risk Orders</strong><span class="badge">${ex.length}</span></div>
+    <div class="exception-list">${ex.slice(0,8).map(x=>`<div class="ex-item">
+      <span class="ex-tag ${x.level==='critical'?'ex-critical':x.level==='warning'?'ex-warning':'ex-info'}">${x.tag}</span>
+      <div class="ex-main"><div class="ex-title">${escHtml(x.title)}</div><div class="ex-detail">${escHtml(x.detail)}</div></div>
+    </div>`).join('')}${ex.length>8?`<div class="ex-item"><span class="ex-tag ex-info">MORE</span><div class="ex-main"><div class="ex-title">${ex.length-8} more risks hidden</div><div class="ex-detail">Fix the top risks first or export details later.</div></div></div>`:''}</div>
+  </div>`;
+}
+function renderControlTower(){
+  renderDashboard();
+  renderExceptions();
+}
+
 // ── ORDERS ──
 function addRow(d){
-  S.orders.push({id:S.nid++,orderNo:d?.orderNo||'',name:d?.name||'',address:d?.address||'',closeTime:d?.closeTime||'',serviceMin:parseInt(d?.serviceMin)||15,priority:d?.priority||'Medium',mode:d?.mode||'Point-to-Point',status:d?.status||'Pending'});
+  S.orders.push({id:S.nid++,orderNo:d?.orderNo||'',name:d?.name||'',address:d?.address||'',closeTime:d?.closeTime||'',serviceMin:parseInt(d?.serviceMin)||15,priority:d?.priority||'Medium',mode:d?.mode||'Point-to-Point',status:d?.status||'Pending',statusUpdatedAt:d?.statusUpdatedAt||'',statusUpdatedBy:d?.statusUpdatedBy||'',statusHistory:d?.statusHistory||[]});
   invalidatePlan();save();renderTable();
 }
 function delRow(id){S.orders=S.orders.filter(o=>o.id!==id);invalidatePlan();save();renderTable()}
-function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status')invalidatePlan();save();renderTable();
+function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;const oldStatus=o.status||'Pending';o[k]=v;if(k==='status'&&oldStatus!==v)addStatusHistory(o,oldStatus,v);if(k!=='status')invalidatePlan();save();renderTable();
   if(_plan&&k==='status'){
     const items=[...(_plan.p2p||[]),...(_plan.route||[])];
     const pi=items.find(x=>String(x.id)===String(id));
@@ -1025,6 +1252,7 @@ function renderTable(){
       <td><button class="btn-del" onclick="delRow(${o.id})">✕</button></td>
     </tr>`}).join('');
   renderMobileOrders();
+  renderControlTower();
 }
 
 
@@ -1225,6 +1453,7 @@ function renderRouteTools(){
 function renderResults(){
   if(!_plan)return;
   renderRouteTools();
+  renderControlTower();
   renderP2P();
   renderRoute();
   updateUrgency();
@@ -1266,7 +1495,7 @@ function renderP2P(){
         <div class="d-top">
           <span class="d-name">${o.name}</span>
           ${o.orderNo?'<span class="badge">'+o.orderNo+'</span>':''}
-          <span class="st-pill ${statusClass(o.status||'Pending')}">${o.status||'Pending'}</span>
+          <span class="st-pill ${statusClass(o.status||'Pending')}">${o.status||'Pending'}</span>${o.statusUpdatedAt?`<span class="status-time">by ${escHtml(o.statusUpdatedBy||"Unknown")} · ${fmtDateTime(o.statusUpdatedAt)}</span>`:""}
           <span class="pill ${pCls}">${urgLabel}</span>
           <span class="mode-btn m-p2p" style="cursor:default">Point-to-Point</span>
         </div>
@@ -1323,18 +1552,18 @@ function doExport(){
   if(!window.XLSX){alert('Loading');return}
   const wb=XLSX.utils.book_new();
   if(_plan?.p2p?.length){
-    const d=[['Dispatch Sequence','单号','Customer','Address','Distance(km)','Driving(min)','Traffic Included','Close','Lalamove Pickup(min)','Latest Call','Priority']];
-    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCall!=null?m2t(o.latestCall):'',o.priority,o.status||'Pending']));
+    const d=[['Dispatch Sequence','Order No.','Customer','Address','Distance(km)','Driving(min)','Traffic Included','Close','Lalamove Pickup(min)','Latest Call','Priority','Status','Status Updated At','Status Updated By']];
+    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCall!=null?m2t(o.latestCall):'',o.priority,o.status||'Pending',o.statusUpdatedAt||'',o.statusUpdatedBy||'']));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Point-to-Point');
   }
   if(_plan?.route?.length){
-    const d=[['Sequence','单号','Customer','Address','Driving(min)','Arrive','Leave','Close','Status']];
-    _plan.route.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,Math.round(o.trav),m2t(o.arr),m2t(o.lv),o.closeTime,o.status,o.status||'Pending']));
+    const d=[['Sequence','Order No.','Customer','Address','Driving(min)','Arrive','Leave','Close','Route Status','Order Status','Status Updated At','Status Updated By']];
+    _plan.route.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,Math.round(o.trav),m2t(o.arr),m2t(o.lv),o.closeTime,o.status,o.status||'Pending',o.statusUpdatedAt||'',o.statusUpdatedBy||'']));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Multi-stop');
   }
   if(!_plan){
-    const d=[['单号','Customer','Address','Close','Priority','Delivery Mode']];
-    S.orders.forEach(o=>d.push([o.orderNo,o.name,o.address,o.closeTime,o.priority,o.mode,o.status||'Pending']));
+    const d=[['Order No.','Customer','Address','Close','Priority','Delivery Mode','Status','Status Updated At','Status Updated By']];
+    S.orders.forEach(o=>d.push([o.orderNo,o.name,o.address,o.closeTime,o.priority,o.mode,o.status||'Pending',o.statusUpdatedAt||'',o.statusUpdatedBy||'']));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Orders');
   }
   XLSX.writeFile(wb,`X-Motors_${S.date}.xlsx`);
@@ -1369,9 +1598,10 @@ function updateApiDot(){
 // ── INIT ──
 load();
 document.getElementById('f-date').value=S.date||todayStr();
+const opEl=document.getElementById('f-operator'); if(opEl){S.operator=S.operator||localStorage.getItem('xmd_operator')||'';opEl.value=S.operator;}
 document.getElementById('f-traffic').value=S.trafficTime||'08:00';
 document.getElementById('f-depot').value=S.depotIdx;
-updateApiDot();renderTable();updateClock();
+updateApiDot();renderTable();renderControlTower();updateClock();
 setInterval(updateClock,30000);
 setInterval(updateUrgency,60000);
 </script>
