@@ -4,7 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>X-Motors Delivery Planning</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+// v18 robust mobile sidebar controls
+window.openSideV17 = function(){
+  const s=document.getElementById('app-sidebar');
+  const m=document.getElementById('side-mask-v17');
+  if(s)s.classList.add('open');
+  if(m)m.classList.add('open');
+};
+window.closeSideV17 = function(){
+  const s=document.getElementById('app-sidebar');
+  const m=document.getElementById('side-mask-v17');
+  if(s)s.classList.remove('open');
+  if(m)m.classList.remove('open');
+};
+
+</script>
 
 <script>
 // Firebase SDK loader with fallback chain
@@ -375,11 +390,71 @@ tbody tr:hover td{background:#fafaf8}
   .app-sidebar{display:block}
 }
 
+
+/* v18 Mobile Sidebar Fix */
+.mobile-menu-top{display:none}
+@media(max-width:900px){
+  .mobile-menu-top{
+    display:inline-flex!important;
+    margin-left:auto;
+    background:var(--accent);
+    color:#fff;
+    border-color:var(--accent);
+    min-height:36px;
+    justify-content:center;
+  }
+  .side-toggle-v17{
+    display:flex!important;
+    position:fixed!important;
+    right:16px!important;
+    bottom:16px!important;
+    z-index:999!important;
+    width:54px!important;
+    height:54px!important;
+    border-radius:50%!important;
+    align-items:center!important;
+    justify-content:center!important;
+    background:var(--accent)!important;
+    color:#fff!important;
+    border:none!important;
+    box-shadow:0 8px 26px rgba(0,0,0,.24)!important;
+    font-size:20px!important;
+  }
+  .app-sidebar{
+    display:block!important;
+    position:fixed!important;
+    left:-285px!important;
+    top:0!important;
+    bottom:0!important;
+    width:270px!important;
+    z-index:998!important;
+    transition:left .2s ease!important;
+  }
+  .app-sidebar.open{left:0!important}
+  .side-mask-v17.open{
+    display:block!important;
+    position:fixed!important;
+    inset:0!important;
+    z-index:997!important;
+    background:rgba(0,0,0,.38)!important;
+  }
+  .hdr{
+    position:sticky;
+    top:0;
+    z-index:120;
+  }
+}
+@media(min-width:901px){
+  .mobile-menu-top{display:none!important}
+  .side-toggle-v17{display:none!important}
+}
+
 </style>
 </head>
 <body>
 
 <aside class="app-sidebar no-print" id="app-sidebar">
+  <button class="drawer-close" id="side-close-top-v18" onclick="closeSideV17()" style="width:100%;justify-content:center;margin-bottom:10px">Close Menu</button>
   <div class="side-brand">X-Motors</div>
   <div class="side-sub">Dispatch Control Tower</div>
 
@@ -431,6 +506,7 @@ tbody tr:hover td{background:#fafaf8}
     <div class="fi"><span class="sync-pill" id="sync-lbl" onclick="forceRefresh()" style="cursor:pointer" title="Click to force refresh from cloud">Cloud sync: loading</span></div>
   </div>
   <span class="now-clock" id="clock"></span>
+  <button class="mobile-menu-top no-print" id="mobile-menu-top-v18" onclick="openSideV17()">☰ Menu</button>
   <div class="fr">
     <button onclick="showSet()">⚙ Settings</button>
     <button onclick="doExport()">📊 Excel</button>
@@ -490,7 +566,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v17 · Sidebar Layout</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v18 · Mobile Sidebar Fix</div>
 </div>
 
 
