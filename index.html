@@ -258,8 +258,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="hdr no-print">
   <span class="logo">X-Motors <span>Delivery Planning</span></span>
   <div class="hdr-fields">
-    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();saveGlobalState();subscribePlan();
-subscribeGlobalState();cloudSaveNow()"></div>
+    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="changeActiveDate(this.value)"></div>
     <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save();saveGlobalState()" title="Used by Google Maps to estimate driving time for future plans"></div>
     <div class="fi"><span>Dispatch Warehouse</span>
       <select id="f-depot" onchange="S.depotIdx=+this.value;save();saveGlobalState()">
@@ -322,7 +321,7 @@ subscribeGlobalState();cloudSaveNow()"></div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v10 · Active Date + Time Fix</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v11 · Safe Date Switching</div>
 </div>
 
 <!-- Settings -->
@@ -459,13 +458,58 @@ async function saveGlobalState(){
     console.warn('[Sync] global state save failed:', e);
   }
 }
+
+function clearCurrentPlanData(){
+  S.orders=[];
+  _plan=null;
+  S.nid=1;
+  _lastAppliedJson='';
+  _lastRemoteVersion=0;
+  saveLocal();
+  renderTable();
+  clearPlanResults();
+}
+async function changeActiveDate(newDate){
+  if(!newDate || newDate===(S.date||todayStr()))return;
+  _switchingDate=true;
+  try{
+    S.date=newDate;
+    clearCurrentPlanData();
+    const fd=document.getElementById('f-date'); if(fd)fd.value=S.date;
+    await saveGlobalState();
+    subscribePlan();
+    await forceLoadCurrentDatePlan();
+  }finally{
+    _switchingDate=false;
+  }
+}
+async function forceLoadCurrentDatePlan(){
+  if(!window.db)return;
+  try{
+    setSyncStatus('Sync: loading date...','');
+    const snap=await planDocRef().get({source:'server'});
+    if(snap.exists){
+      applyRemoteData(snap.data());
+      setSyncStatus('Sync: date loaded ✓','ok');
+    }else{
+      clearCurrentPlanData();
+      setSyncStatus('Sync: new empty date','');
+    }
+  }catch(e){
+    console.error('[Sync] forceLoadCurrentDatePlan failed:',e);
+    setSyncStatus('Sync: date load failed','err');
+  }
+}
+
 async function applyGlobalState(data){
   if(!data || !data.activeDate)return;
   const newDate=data.activeDate;
   const changed=(S.date||todayStr())!==newDate;
   if(changed){
     console.log('[Sync] Active date changed:', S.date, '→', newDate);
+    _switchingDate=true;
     S.date=newDate;
+    clearCurrentPlanData();
     if(data.trafficTime)S.trafficTime=data.trafficTime;
     if(typeof data.depotIdx==='number')S.depotIdx=data.depotIdx;
     saveLocal();
@@ -473,7 +517,13 @@ async function applyGlobalState(data){
     const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
     const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
     subscribePlan();
-    await pollCloudOnce('active-date-change');
+    await forceLoadCurrentDatePlan();
+    _switchingDate=false;
+  }else{
+    if(data.trafficTime)S.trafficTime=data.trafficTime;
+    if(typeof data.depotIdx==='number')S.depotIdx=data.depotIdx;
+    const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
+    const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
   }
 }
 function subscribeGlobalState(){
@@ -523,7 +573,7 @@ function cloudPayload(){
   };
 }
 function cloudSaveDebounced(){
-  if(_cloudLoading)return;
+  if(_cloudLoading || _switchingDate)return;
   clearTimeout(_cloudSaveTimer);
   _cloudSaveTimer=setTimeout(cloudSaveNow,450);
 }
@@ -539,7 +589,6 @@ async function cloudSaveNow(){
     setSyncStatus(`Sync: saved ✓ (${_syncStats.saves} saves total)`,'ok');
     updateSyncBadge();
     console.log('[Sync] Saved successfully #'+_syncStats.saves);
-    saveGlobalState();
   }catch(e){
     console.error('[Sync] Save error:',e);
     _syncStats.lastError=e.message||e.code;
@@ -623,8 +672,8 @@ function subscribePlan(){
       });
       try{
         if(!snap.exists){
-          setSyncStatus('Sync: empty doc · waiting','');
-          if((S.orders||[]).length)cloudSaveNow();
+          clearCurrentPlanData();
+          setSyncStatus('Sync: new empty date','');
           updateSyncBadge();
           return;
         }
@@ -669,8 +718,9 @@ async function forceRefresh(){
       updateSyncBadge();
       alert('✓ Refreshed from cloud\nSnapshots: '+_syncStats.snapshots+'\nOrders: '+(S.orders||[]).length);
     }else{
-      setSyncStatus('Sync: no data on server','');
-      alert('No data found on server for date '+(S.date||todayStr()));
+      clearCurrentPlanData();
+      setSyncStatus('Sync: new empty date','');
+      alert('No data found on server for date '+(S.date||todayStr())+'; this date is now empty.');
     }
   }catch(e){
     console.error('[Sync] Force refresh error:',e);
