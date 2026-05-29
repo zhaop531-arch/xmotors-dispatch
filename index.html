@@ -275,14 +275,14 @@ cloudSaveNow()"></div>
 </div>
 
 <div id="route-tools"></div>
-<div class="mobile-map-note">Map overview is available after generating the plan. Use the Maps button if the embedded map is slow on mobile.</div>
+<div class="mobile-map-note">Map auto-loads when plan is generated or synced. Use "Open Route in Google Maps" if embedded map is slow.</div>
 <div id="map-wrap" style="display:none"><div id="map"></div></div>
 <div id="alert-el"></div>
 <div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v7 · Mobile Map + Depot Presets</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v8 · Real-time Sync + Depot Presets</div>
 </div>
 
 <!-- Settings -->
@@ -292,11 +292,19 @@ cloudSaveNow()"></div>
     <div class="mf">
       <label>Google Maps API Key</label>
       <input type="password" id="si-key" placeholder="AIzaSy...">
-      <div class="ht">Enable Maps JavaScript API + Distance Matrix API in Google Cloud Console. Used to calculate real driving time with traffic.</div>
+      <div class="ht">Enable Maps JavaScript API + Distance Matrix API + Geocoding API in Google Cloud Console.</div>
     </div>
     <div class="mf">
-      <label>Full warehouse address (for Maps location)</label>
-      <input id="si-addr" placeholder="Example: Jl ... Jakarta">
+      <label>BCS HEAD OFFICE (HO) — Address</label>
+      <input id="si-addr-0" placeholder="Warehouse address for Maps">
+    </div>
+    <div class="mf">
+      <label>BCS-1 Kelapa Gading — Address</label>
+      <input id="si-addr-1" placeholder="Warehouse address for Maps">
+    </div>
+    <div class="mf">
+      <label>BCS-2 PIK 2 — Address</label>
+      <input id="si-addr-2" placeholder="Warehouse address for Maps">
     </div>
     <div class="mf">
       <label>Lalamove pickup lead time (minutes)</label>
@@ -316,9 +324,9 @@ cloudSaveNow()"></div>
 
 <script>
 const DEPOTS=[
-  {name:'BCS HEAD OFFICE (HO)', addr:''},
-  {name:'BCS-1 Kelapa Gading', addr:''},
-  {name:'BCS-2 PIK 2', addr:''}
+  {name:'BCS HEAD OFFICE (HO)', addr:'Jl. Boulevard Raya Blok QJ3 No.1, Kelapa Gading, Jakarta Utara'},
+  {name:'BCS-1 Kelapa Gading', addr:'Jl. Boulevard Raya, Kelapa Gading, Jakarta Utara'},
+  {name:'BCS-2 PIK 2', addr:'PIK 2, Tangerang, Banten'}
 ];
 
 let S={apiKey:'',depotIdx:0,date:todayStr(),trafficTime:'08:00',pickupMin:20,departTime:'08:00',orders:[],nid:1};
@@ -392,6 +400,7 @@ function cloudPayload(){
     trafficTime:S.trafficTime||'08:00',
     pickupMin:S.pickupMin||20,
     departTime:S.departTime||'08:00',
+    apiKey:S.apiKey||'',
     nid:S.nid||1,
     orders:S.orders||[],
     depots:DEPOTS.map(d=>({name:d.name,addr:d.addr||''})),
@@ -411,10 +420,11 @@ async function cloudSaveNow(){
     setSyncStatus('Cloud sync: saving','');
     await planDocRef().set(cloudPayload(),{merge:true});
     setSyncStatus(_plan?'Cloud sync: plan saved':'Cloud sync: saved','ok');
+    // Hold flag briefly so echoed onSnapshot is skipped
+    setTimeout(()=>{_cloudSaving=false},800);
   }catch(e){
     console.error(e);
     setSyncStatus('Cloud sync: error','err');
-  }finally{
     _cloudSaving=false;
   }
 }
@@ -435,14 +445,17 @@ function clearPlanResults(){
 
 function applyRemoteData(data){
   if(!data)return;
+  if(_cloudSaving)return; // skip echoed snapshot from own write
   _cloudLoading=true;
   S.depotIdx=data.depotIdx??S.depotIdx??0;
   S.trafficTime=data.trafficTime||S.trafficTime||'08:00';
   S.pickupMin=data.pickupMin||S.pickupMin||20;
   S.departTime=data.departTime||S.departTime||'08:00';
+  if(data.apiKey&&!S.apiKey)S.apiKey=data.apiKey; // sync API key from team
   S.nid=data.nid||S.nid||1;
   S.orders=Array.isArray(data.orders)?data.orders:[];
   if(Array.isArray(data.depots)){data.depots.forEach((d,i)=>{if(DEPOTS[i])DEPOTS[i].addr=d.addr||DEPOTS[i].addr||''})}
+  const hadPlan=!!_plan;
   _plan=hasRemotePlan(data)?data.plan:null;
   saveLocal();
   const fd=document.getElementById('f-date'); if(fd)fd.value=S.date||todayStr();
@@ -452,7 +465,19 @@ function applyRemoteData(data){
   const siDepart=document.getElementById('si-depart'); if(siDepart)siDepart.value=S.departTime||'08:00';
   renderTable();
   updateApiDot();
-  if(_plan){renderResults();}else{clearPlanResults();}
+  if(_plan){
+    renderResults();
+    // Load map for synced plan
+    if(S.apiKey){
+      const depotAddr=DEPOTS[S.depotIdx].addr||DEPOTS[S.depotIdx].name;
+      if(_mapsOk&&window.google?.maps){
+        loadMapAsync(depotAddr);
+      }else{
+        // Maps API not loaded yet - load it then show map
+        loadMaps(S.apiKey).then(()=>loadMapAsync(depotAddr)).catch(()=>{});
+      }
+    }
+  }else{clearPlanResults();}
   _cloudLoading=false;
 }
 function subscribePlan(){
@@ -648,7 +673,14 @@ function addRow(d){
   invalidatePlan();save();renderTable();
 }
 function delRow(id){S.orders=S.orders.filter(o=>o.id!==id);invalidatePlan();save();renderTable()}
-function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status')invalidatePlan();save();renderTable()}
+function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status'&&k!=='priority')invalidatePlan();save();renderTable();
+  if(_plan&&k==='status'){
+    const items=[...(_plan.p2p||[]),...(_plan.route||[])];
+    const pi=items.find(x=>String(x.id)===String(id));
+    if(pi)pi.status=v;
+    renderResults();
+  }
+}
 function togMode(id){const o=S.orders.find(o=>o.id===id);if(!o)return;o.mode=o.mode==='Point-to-Point'?'Multi-stop':'Point-to-Point';invalidatePlan();save();renderTable()}
 function togImp(){const e=document.getElementById('imp-el');e.style.display=e.style.display==='none'?'block':'none'}
 function doImp(){
@@ -1015,7 +1047,7 @@ function saveSet(){
   if(document.getElementById('si-addr-2'))DEPOTS[2].addr=document.getElementById('si-addr-2').value.trim();
   S.pickupMin=parseInt(document.getElementById('si-pickup').value)||20;
   S.departTime=document.getElementById('si-depart').value;
-  save();hideSet();updateApiDot();
+  save();hideSet();updateApiDot();cloudSaveNow();
 }
 function updateApiDot(){
   const d=document.getElementById('api-dot'),l=document.getElementById('api-lbl');
