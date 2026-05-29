@@ -66,10 +66,6 @@ let _cloudSaving = false;
 let _cloudLoading = false;
 let _cloudSaveTimer = null;
 let _syncStats = {snapshots:0, saves:0, lastSnap:null, lastSave:null, lastError:null, listenerActive:false};
-let _lastRemoteVersion = 0;
-let _pollTimer = null;
-let _lastAppliedJson = '';
-
 function updateSyncBadge(){
   const el=document.getElementById('sync-lbl');
   if(!el)return;
@@ -262,20 +258,11 @@ tbody tr:hover td{background:#fafaf8}
 <div class="hdr no-print">
   <span class="logo">X-Motors <span>Delivery Planning</span></span>
   <div class="hdr-fields">
-    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();subscribePlan();
-
-setTimeout(function(){
-  const el=document.getElementById('sync-lbl');
-  if(el && el.textContent==='Cloud sync: connecting'){
-    el.textContent='Cloud sync: timeout/check rules';
-    el.style.color='var(--err)';
-    el.style.borderColor='#e8adad';
-  }
-},8000);
-cloudSaveNow()"></div>
-    <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save()" title="Used by Google Maps to estimate driving time for future plans"></div>
+    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();saveGlobalState();subscribePlan();
+subscribeGlobalState();cloudSaveNow()"></div>
+    <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save();saveGlobalState()" title="Used by Google Maps to estimate driving time for future plans"></div>
     <div class="fi"><span>Dispatch Warehouse</span>
-      <select id="f-depot" onchange="S.depotIdx=+this.value;save()">
+      <select id="f-depot" onchange="S.depotIdx=+this.value;save();saveGlobalState()">
         <option value="0">BCS HEAD OFFICE (HO)</option>
         <option value="1">BCS-1 Kelapa Gading</option>
         <option value="2">BCS-2 PIK 2</option>
@@ -335,7 +322,7 @@ cloudSaveNow()"></div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v9 · Auto Poll Sync</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v10 · Active Date + Time Fix</div>
 </div>
 
 <!-- Settings -->
@@ -389,6 +376,35 @@ function todayStr(){return new Date().toISOString().slice(0,10)}
 function t2m(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m}
 function m2t(m){if(m==null||isNaN(m))return'—';m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+
+function dateTimeMs(dateStr,timeStr){
+  if(!dateStr||!timeStr)return null;
+  const [h,m]=timeStr.split(':').map(Number);
+  const d=new Date(dateStr+'T00:00:00');
+  d.setHours(h||0,m||0,0,0);
+  return d.getTime();
+}
+function msToClock(ms){
+  if(ms==null||isNaN(ms))return '—';
+  const d=new Date(ms);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function msRemainingText(ms){
+  if(ms==null||isNaN(ms))return '—';
+  const diff=Math.round((ms-Date.now())/60000);
+  if(diff<0)return 'Overdue';
+  const d=Math.floor(diff/1440);
+  const h=Math.floor((diff%1440)/60);
+  const m=diff%60;
+  if(d>0)return `${d}d ${h}h ${m}m`;
+  if(h>0)return `${h}h ${m}m`;
+  return `${m}m`;
+}
+function minutesRemaining(ms){
+  if(ms==null||isNaN(ms))return 999999;
+  return Math.round((ms-Date.now())/60000);
+}
+
 function buildPlanDateTime(timeStr){
   const dateStr=S.date||todayStr();
   const t=timeStr||S.trafficTime||'08:00';
@@ -426,6 +442,51 @@ function setSyncStatus(text,type){
   el.style.color=type==='ok'?'var(--ok)':type==='err'?'var(--err)':'var(--muted)';
   el.style.borderColor=type==='ok'?'#9ed8c4':type==='err'?'#e8adad':'var(--bd)';
 }
+
+function globalStateRef(){
+  return db.collection('appState').doc('current');
+}
+async function saveGlobalState(){
+  if(!window.db)return;
+  try{
+    await globalStateRef().set({
+      activeDate:S.date||todayStr(),
+      trafficTime:S.trafficTime||'08:00',
+      depotIdx:S.depotIdx||0,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+  }catch(e){
+    console.warn('[Sync] global state save failed:', e);
+  }
+}
+async function applyGlobalState(data){
+  if(!data || !data.activeDate)return;
+  const newDate=data.activeDate;
+  const changed=(S.date||todayStr())!==newDate;
+  if(changed){
+    console.log('[Sync] Active date changed:', S.date, '→', newDate);
+    S.date=newDate;
+    if(data.trafficTime)S.trafficTime=data.trafficTime;
+    if(typeof data.depotIdx==='number')S.depotIdx=data.depotIdx;
+    saveLocal();
+    const fd=document.getElementById('f-date'); if(fd)fd.value=S.date;
+    const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
+    const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
+    subscribePlan();
+    await pollCloudOnce('active-date-change');
+  }
+}
+function subscribeGlobalState(){
+  if(!window.db)return;
+  try{
+    globalStateRef().onSnapshot((snap)=>{
+      if(snap.exists)applyGlobalState(snap.data());
+    },(err)=>console.warn('[Sync] global state listener error:',err));
+  }catch(e){
+    console.warn('[Sync] global state subscribe failed:',e);
+  }
+}
+
 function planDocRef(){
   return db.collection('dispatchPlans').doc(S.date||todayStr());
 }
@@ -478,6 +539,7 @@ async function cloudSaveNow(){
     setSyncStatus(`Sync: saved ✓ (${_syncStats.saves} saves total)`,'ok');
     updateSyncBadge();
     console.log('[Sync] Saved successfully #'+_syncStats.saves);
+    saveGlobalState();
   }catch(e){
     console.error('[Sync] Save error:',e);
     _syncStats.lastError=e.message||e.code;
@@ -502,42 +564,14 @@ function clearPlanResults(){
   const rt=document.getElementById('route-tools'); if(rt)rt.innerHTML='';
 }
 
-
-function getRemoteVersion(data){
-  if(!data)return 0;
-  if(data.updatedAt && typeof data.updatedAt.toMillis === 'function') return data.updatedAt.toMillis();
-  if(data.updatedAt && data.updatedAt.seconds) return data.updatedAt.seconds*1000;
-  if(data.plan && data.plan.generatedAt) return Date.parse(data.plan.generatedAt)||0;
-  return Date.now();
-}
-function getComparablePayload(data){
-  if(!data)return '';
-  try{
-    return JSON.stringify({
-      depotIdx:data.depotIdx,
-      trafficTime:data.trafficTime,
-      pickupMin:data.pickupMin,
-      departTime:data.departTime,
-      orders:data.orders||[],
-      depots:data.depots||[],
-      plan:data.plan||null
-    });
-  }catch(e){return String(Date.now())}
-}
-
 function applyRemoteData(data){
   if(!data)return;
   // Don't overwrite local changes waiting to be saved
-  if(_cloudSaveTimer || _cloudSaving){
+  if(_cloudSaveTimer){
     console.log('Skipping remote apply: local save pending');
     return;
   }
-  const comparable=getComparablePayload(data);
-  if(comparable && comparable===_lastAppliedJson){
-    return;
-  }
   _cloudLoading=true;
-  try{
   S.depotIdx=data.depotIdx??S.depotIdx??0;
   S.trafficTime=data.trafficTime||S.trafficTime||'08:00';
   S.pickupMin=data.pickupMin||S.pickupMin||20;
@@ -569,15 +603,7 @@ function applyRemoteData(data){
       }
     }
   }else{clearPlanResults();}
-  _lastAppliedJson=comparable;
-  _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
-  }catch(e){
-    console.error('[Sync] applyRemoteData failed:', e);
-    _syncStats.lastError=e.message||String(e);
-    setSyncStatus('Sync: apply error','err');
-  }finally{
-    _cloudLoading=false;
-  }
+  _cloudLoading=false;
 }
 function subscribePlan(){
   try{
@@ -607,9 +633,7 @@ function subscribePlan(){
           updateSyncBadge();
           return;
         }
-        const data=snap.data();
-        _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
-        applyRemoteData(data);
+        applyRemoteData(snap.data());
         const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
         setSyncStatus(`Sync: live ✓ (${_syncStats.snapshots} updates · ${fmt})`,'ok');
         updateSyncBadge();
@@ -638,10 +662,7 @@ async function forceRefresh(){
   try{
     const snap=await planDocRef().get({source:'server'});
     if(snap.exists){
-      const data=snap.data();
-      applyRemoteData(data);
-      _lastRemoteVersion=Math.max(_lastRemoteVersion,getRemoteVersion(data));
-      _lastAppliedJson=getComparablePayload(data);
+      applyRemoteData(snap.data());
       setSyncStatus('Sync: refreshed ✓','ok');
       _syncStats.snapshots++;
       _syncStats.lastSnap=new Date();
@@ -656,37 +677,6 @@ async function forceRefresh(){
     setSyncStatus('Sync: refresh failed','err');
     alert('Refresh failed: '+(e.message||e.code||'unknown'));
   }
-}
-
-
-async function pollCloudOnce(reason){
-  if(!window.db || _cloudSaving || _cloudSaveTimer || _cloudLoading)return;
-  try{
-    const snap=await planDocRef().get({source:'server'});
-    if(!snap.exists)return;
-    const data=snap.data();
-    const ver=getRemoteVersion(data);
-    const comparable=getComparablePayload(data);
-    if(ver>_lastRemoteVersion || (comparable && comparable!==_lastAppliedJson)){
-      console.log('[Sync] Poll update detected:', reason||'timer', {ver,last:_lastRemoteVersion});
-      applyRemoteData(data);
-      _syncStats.snapshots++;
-      _syncStats.lastSnap=new Date();
-      const fmt=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      setSyncStatus(`Sync: live ✓ auto ${fmt}`,'ok');
-      updateSyncBadge();
-    }
-  }catch(e){
-    console.warn('[Sync] Poll failed:', e);
-  }
-}
-function startCloudPolling(){
-  if(_pollTimer)clearInterval(_pollTimer);
-  _pollTimer=setInterval(()=>pollCloudOnce('interval'),5000);
-  document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden)pollCloudOnce('visible');
-  });
-  window.addEventListener('focus',()=>pollCloudOnce('focus'));
 }
 
 // ── CLOCK ──
@@ -788,7 +778,9 @@ async function getFullMatrix(locations){
 
 function invalidatePlan(){
   _plan=null;
-  clearPlanResults();
+  const p2p=document.getElementById('p2p-list'); if(p2p)p2p.innerHTML='';
+  const route=document.getElementById('route-el'); if(route)route.innerHTML='';
+  const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
 }
 
 
@@ -878,7 +870,7 @@ function doImp(){
 function renderTable(){
   const tb=document.getElementById('tbody');
   document.getElementById('o-cnt').textContent=S.orders.length+' 单';
-  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">No orders yet — add or import orders</td></tr>';renderMobileOrders();return}
+  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">还没有Orders — 添加或导入</td></tr>';return}
   tb.innerHTML=S.orders.map((o,i)=>{
     const mc=o.mode==='Multi-stop'?'m-multi':'m-p2p';
     return`<tr>
@@ -897,6 +889,15 @@ function renderTable(){
 }
 
 
+
+function validateOrderTimes(){
+  const missing=S.orders.filter(o=>!o.closeTime);
+  if(missing.length){
+    return confirm(`${missing.length} orders have no Close Time. Latest Call and Remaining Time will show no data for those orders. Continue?`);
+  }
+  return true;
+}
+
 function validateDepotAddress(){
   const depot=DEPOTS[S.depotIdx];
   if(!depot.addr){
@@ -909,6 +910,7 @@ function validateDepotAddress(){
 async function generate(){
   if(!S.orders.length){alert('Please add orders first');return}
   if(!validateDepotAddress())return;
+  if(!validateOrderTimes())return;
   const btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note');
   btn.disabled=true;btn.textContent='⏳ 规划Medium...';
   try{
@@ -929,16 +931,18 @@ async function generate(){
     S.orders.forEach((o,i)=>{
       const d=dm[i];
       const cl=t2m(o.closeTime);
+      const closeMs=dateTimeMs(S.date||todayStr(),o.closeTime);
       const transit=d.ok?d.transitMin:null;
       const dist=d.ok?d.distKm:null;
       const latestCall=cl!=null&&transit!=null?cl-transit-pickup:null;
-      const item={...o,coord:null,transit,dist,latestCall,hasTraffic:d.ok?d.hasTraffic:false};
+      const latestCallMs=closeMs!=null&&transit!=null?closeMs-(transit+pickup)*60000:null;
+      const item={...o,coord:null,transit,dist,closeMs,latestCall,latestCallMs,hasTraffic:d.ok?d.hasTraffic:false};
       if(o.mode==='Multi-stop')multi.push(item);else p2p.push(item);
     });
 
     const priW={High:0,Medium:1,Low:2};
     p2p.sort((a,b)=>{
-      const la=a.latestCall??9999,lb=b.latestCall??9999;
+      const la=a.latestCallMs??(a.latestCall??9999),lb=b.latestCallMs??(b.latestCall??9999);
       if(la!==lb)return la-lb;
       return(priW[a.priority]??1)-(priW[b.priority]??1);
     });
@@ -951,7 +955,7 @@ async function generate(){
       routeResult=optimizeRoute(multi,fm,t2m(S.departTime)||480);
     }else if(multi.length===1){
       const o=multi[0];const dep=t2m(S.departTime)||480;
-      routeResult=[{...o,trav:o.transit||30,arr:dep+(o.transit||30),st:dep+(o.transit||30),lv:dep+(o.transit||30)+(o.serviceMin||15),status:'ok'}];
+      routeResult=[{...o,trav:o.transit||30,arr:dep+(o.transit||30),st:dep+(o.transit||30),lv:dep+(o.transit||30)+(o.serviceMin||15),closeMs:o.closeMs||dateTimeMs(S.date||todayStr(),o.closeTime),latestCallMs:o.latestCallMs||null,status:'ok'}];
     }
 
     _plan={p2p,route:routeResult,depotCoord:null,depotName:depot.name};
@@ -1019,7 +1023,7 @@ async function loadMapAsync(depotAddr){
           <br><span style="color:#636358">${o.address||'—'}</span>
           ${o.dist!=null?'<br>🚗 '+o.dist+'km · '+o.transit+'分'+(o.hasTraffic?' (Traffic Included)':''):''}
           ${o.closeTime?'<br>🕐 Close '+o.closeTime:''}
-          ${o.latestCall!=null?'<br>📞 <strong>Latest call '+m2t(o.latestCall)+'</strong>':''}
+          ${o.latestCallMs!=null?'<br>📞 <strong>Latest call '+msToClock(o.latestCallMs)+'</strong>':''}
         </div>`
       });
       mk.addListener('click',()=>iw.open(_map,mk));
@@ -1106,28 +1110,29 @@ function renderP2P(){
   const p2p=_plan.p2p;
   if(!p2p.length){lbl.style.display='none';list.innerHTML='';alert_el.innerHTML='';return}
   lbl.style.display='block';
-  const now=planBaseMin();
+  const now=Date.now();
   const pickup=S.pickupMin||20;
   const futurePlan=!isTodayPlan();
 
   // Alert banner
   const most=p2p[0];
-  const mostRemain=most.latestCall!=null?most.latestCall-now:9999;
+  const mostRemain=most.latestCallMs!=null?minutesRemaining(most.latestCallMs):9999;
   if(mostRemain<0){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${m2t(most.latestCall)}），please handle immediately!</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${msToClock(most.latestCallMs)}），please handle immediately!</div></div>`;
   }else if(mostRemain<30){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${m2t(most.latestCall)}</strong> (remaining ${mostRemain} minutes)</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${msToClock(most.latestCallMs)}</strong> (remaining ${msRemainingText(most.latestCallMs)})</div></div>`;
   }else{
-    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${m2t(most.latestCall)} (remaining ${Math.floor(mostRemain/60)}h${mostRemain%60}m）</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${msToClock(most.latestCallMs)} (remaining ${msRemainingText(most.latestCallMs)}）</div></div>`;
   }
 
   list.innerHTML=p2p.map((o,i)=>{
-    const lc=o.latestCall;
-    const remain=lc!=null?lc-now:9999;
+    const lc=o.latestCallMs??null;
+    const remain=lc!=null?minutesRemaining(lc):999999;
     const urg=remain<0?'missed':remain<30?'urgent':remain<90?'soon':'safe';
     const urgLabel={missed:'Overdue',urgent:'Urgent',soon:'Soon',safe:'Safe'}[urg];
     const pCls='p-'+urg;
-    const barPct=lc!=null?Math.max(0,Math.min(100,remain/(t2m(o.closeTime)-now+1)*100)):100;
+    const totalWindow=o.closeMs?Math.max(1,Math.round((o.closeMs-Date.now())/60000)):Math.max(1,remain+1);
+    const barPct=lc!=null?Math.max(0,Math.min(100,remain/(totalWindow+1)*100)):100;
     const barColor=urg==='safe'?'var(--ok)':urg==='soon'?'var(--warn)':'var(--err)';
     return`<div class="d-card ${urg}">
       <div class="d-num ${urg}">${i+1}</div>
@@ -1147,8 +1152,8 @@ function renderP2P(){
         </div>
         <div class="d-call-row">
           <span style="font-size:12px;color:var(--muted)">Latest Call</span>
-          <span class="d-call ${urg}">${lc!=null?m2t(lc):'—'}</span>
-          <span class="d-remain">${remain>0?'Remaining '+(remain>=60?Math.floor(remain/60)+'h':'')+(remain%60)+'m':'Overdue'}</span>
+          <span class="d-call ${urg}">${lc!=null?msToClock(lc):'—'}</span>
+          <span class="d-remain">${lc!=null?msRemainingText(lc):'No close time'}</span>
           <div class="d-bar"><div class="d-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
         </div>
       </div>
@@ -1193,7 +1198,7 @@ function doExport(){
   const wb=XLSX.utils.book_new();
   if(_plan?.p2p?.length){
     const d=[['Dispatch Sequence','单号','Customer','Address','Distance(km)','Driving(min)','Traffic Included','Close','Lalamove Pickup(min)','Latest Call','Priority']];
-    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCall!=null?m2t(o.latestCall):'',o.priority,o.status||'Pending']));
+    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCallMs!=null?msToClock(o.latestCallMs):'',o.priority,o.status||'Pending']));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Point-to-Point');
   }
   if(_plan?.route?.length){
@@ -1263,7 +1268,6 @@ setInterval(updateUrgency,60000);
       if(typeof setSyncStatus === 'function') setSyncStatus('Sync: connecting...','');
       if(typeof subscribePlan === 'function'){
         subscribePlan();
-        startCloudPolling();
         setTimeout(function(){
           if(_syncStats.snapshots===0){
             console.warn('[Sync] No snapshots received after 10s — check Firestore Rules');
