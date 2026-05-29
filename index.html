@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Motors Delivery Planning</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB2n1ANZYTbBInwR6Lev6GKxmKPPrhI2aM",
+  authDomain: "deliver-management.firebaseapp.com",
+  projectId: "deliver-management",
+  storageBucket: "deliver-management.firebasestorage.app",
+  messagingSenderId: "1003676507865",
+  appId: "1:1003676507865:web:50a65ff995630ee75a28c8",
+  measurementId: "G-Q7PV48FQ9Z"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let _cloudUnsub = null;
+let _cloudSaving = false;
+let _cloudLoading = false;
+let _cloudSaveTimer = null;
+</script>
+
+<style>
+:root{--bg:#f3f2ee;--card:#fff;--bd:#e0dfda;--bd2:#c5c4be;--txt:#191917;--muted:#636358;--hint:#a0a096;--ok:#0d6b52;--ok-bg:#dff2eb;--warn:#b06e0e;--warn-bg:#faebd5;--err:#952828;--err-bg:#fae8e8;--black:#952828;--accent:#191917;--r:10px;--rs:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
+.page{max-width:1100px;margin:0 auto;padding:16px 20px}
+/* Header */
+.hdr{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.logo{font-size:15px;font-weight:700;letter-spacing:-.02em;flex-shrink:0}.logo span{font-weight:400;color:var(--muted)}
+.hdr-fields{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1}
+.fi{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.fi input,.fi select{border:1px solid var(--bd);border-radius:var(--rs);padding:4px 8px;font-size:13px;font-family:inherit;background:var(--card);color:var(--txt)}
+.fi input:focus,.fi select:focus{outline:none;border-color:var(--bd2)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.dot.ok{background:var(--ok)}.dot.no{background:var(--hint)}.sync-pill{font-size:11px;color:var(--muted);border:1px solid var(--bd);border-radius:20px;padding:2px 8px;background:var(--card)}
+.now-clock{font-size:13px;font-weight:600;color:var(--txt);margin-left:auto;white-space:nowrap}
+button{cursor:pointer;font-family:inherit;font-size:13px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--card);color:var(--txt);padding:6px 12px;display:inline-flex;align-items:center;gap:5px;transition:background .12s;white-space:nowrap}
+button:hover{background:var(--bg)}button:disabled{opacity:.4;cursor:not-allowed}
+.btn-d{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-d:hover{background:#333}
+.btn-del{color:var(--err);border:none;background:none;padding:3px 5px;font-size:14px}.btn-del:hover{background:var(--err-bg);border-radius:3px}
+/* Table */
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.tbl-wrap{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:10px;font-weight:600;color:var(--hint);letter-spacing:.06em;text-transform:uppercase;padding:8px 8px;border-bottom:1px solid var(--bd);background:var(--bg);white-space:nowrap}
+tbody td{padding:6px 8px;border-bottom:1px solid var(--bd);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fafaf8}
+.ci{border:none;background:transparent;font-size:13px;font-family:inherit;color:var(--txt);width:100%;padding:2px}
+.ci:focus{outline:1px solid var(--bd2);border-radius:3px;padding:2px 4px;background:var(--card)}
+.mode-btn{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap}
+.m-p2p{background:#e8f0fe;color:#1a56db;border:1px solid #b3c8f8}.m-p2p:hover{background:#d1e1fd}
+.m-multi{background:var(--ok-bg);color:var(--ok);border:1px solid #9ed8c4}.m-multi:hover{background:#c8ead9}
+.pri-s{border:1px solid var(--bd);border-radius:var(--rs);padding:2px 5px;font-size:12px;font-family:inherit;background:var(--card)}
+.empty-row{color:var(--hint);padding:24px;text-align:center;font-size:13px}
+/* Import */
+.imp-box{background:var(--bg);border:1.5px dashed var(--bd2);border-radius:var(--r);padding:12px;margin-bottom:14px}
+.imp-box textarea{width:100%;border:1px solid var(--bd);border-radius:var(--rs);padding:6px 10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--card)}
+.imp-fmt{font-size:11px;color:var(--hint);font-family:monospace;background:var(--card);padding:6px 10px;border-radius:var(--rs);border:1px solid var(--bd);margin:6px 0;line-height:1.7}
+/* Generate */
+.gen-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.gen-btn{font-size:14px;font-weight:600;padding:11px 32px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs)}.gen-btn:hover{background:#333}
+.gen-note{font-size:12px;color:var(--hint)}
+/* Map */
+#map-wrap{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+#map{width:100%;height:380px;background:var(--bg)}
+.map-placeholder{display:flex;align-items:center;justify-content:center;height:380px;color:var(--hint);font-size:13px;text-align:center;padding:20px;line-height:1.6}
+/* Alert banner */
+.alert-banner{border-radius:var(--rs);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-size:13px;line-height:1.5}
+.alert-urgent{background:var(--err-bg);border:1px solid #e8adad;color:var(--err)}
+.alert-ok{background:var(--ok-bg);border:1px solid #a0d8c0;color:var(--ok)}
+.alert-banner strong{font-size:15px}
+/* Dispatch cards */
+.dispatch-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.d-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
+.d-card.urgent{border-left:4px solid var(--err)}
+.d-card.soon{border-left:4px solid var(--warn)}
+.d-card.safe{border-left:4px solid var(--ok)}
+.d-card.missed{border-left:4px solid #555;opacity:.7}
+.d-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.d-num.urgent{background:var(--err)}.d-num.soon{background:var(--warn)}.d-num.safe{background:var(--ok)}.d-num.missed{background:#888}
+.d-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.d-name{font-weight:600;font-size:14px}
+.badge{font-size:10px;background:var(--bg);color:var(--hint);border:1px solid var(--bd);border-radius:20px;padding:1px 7px}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.p-urgent{background:var(--err-bg);color:var(--err)}.p-soon{background:var(--warn-bg);color:var(--warn)}.p-safe{background:var(--ok-bg);color:var(--ok)}.p-missed{background:#eee;color:#777}
+.d-addr{font-size:12px;color:var(--muted);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-stats{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin-bottom:6px}
+.d-stats span{white-space:nowrap}
+.d-stats strong{color:var(--txt);font-weight:600}
+.d-call-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.d-call{font-size:16px;font-weight:700}
+.d-call.urgent{color:var(--err)}.d-call.soon{color:var(--warn)}.d-call.safe{color:var(--ok)}.d-call.missed{color:#888}
+.d-remain{font-size:12px;color:var(--muted)}
+.d-bar{flex:1;min-width:80px;max-width:200px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.d-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.d-mode{margin-top:6px}
+/* Section labels */
+.sec-lbl{font-size:11px;font-weight:600;color:var(--hint);letter-spacing:.08em;text-transform:uppercase;margin:16px 0 8px}
+/* Route results (for Multi-stop) */
+.route-section{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.route-hdr{padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--bg);display:flex;align-items:center;justify-content:space-between}
+.route-body{padding:0}
+.r-item{padding:10px 16px;border-bottom:1px solid var(--bd);display:flex;gap:10px;align-items:flex-start}
+.r-item:last-child{border-bottom:none}
+.r-n{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.r-n.ok{background:var(--ok)}.r-n.warn{background:var(--warn)}.r-n.late{background:var(--err)}
+/* Modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center}
+.mod{background:var(--card);border-radius:var(--r);padding:24px;width:480px;max-width:95vw}
+.mod h3{font-size:15px;font-weight:600;margin-bottom:16px}
+.mf{margin-bottom:14px}
+.mf label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.mf input{width:100%;border:1px solid var(--bd);border-radius:var(--rs);padding:7px 10px;font-size:13px;font-family:inherit}
+.mf .ht{font-size:11px;color:var(--hint);margin-top:4px;line-height:1.5}
+.mod-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.fr{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fb{display:flex;align-items:center;justify-content:space-between;gap:8px}
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff;font-size:12px}
+  .d-card{page-break-inside:avoid;border-left-width:3px!important}
+  #map-wrap{height:300px}
+  .gen-row,.tbl-wrap,.imp-box,.tbl-bar{display:none!important}
+}
+
+/* Status */
+.status-s{border:1px solid var(--bd);border-radius:var(--rs);padding:2px 5px;font-size:12px;font-family:inherit;background:var(--card)}
+.st-pill{font-size:10px;border-radius:20px;padding:2px 7px;border:1px solid var(--bd);white-space:nowrap}
+.st-pending{background:#f4f4f2;color:#636358}
+.st-preparing{background:#faebd5;color:#b06e0e}
+.st-called{background:#e8f0fe;color:#1a56db}
+.st-picked{background:#e7f0ff;color:#164ea6}
+.st-delivered{background:#dff2eb;color:#0d6b52}
+.st-failed{background:#fae8e8;color:#952828}
+
+/* Mobile order cards */
+.mobile-orders{display:none}
+.mo-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.mo-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.mo-title{font-weight:600;font-size:14px;line-height:1.3}
+.mo-sub{font-size:11px;color:var(--hint);margin-top:2px}
+.mo-addr{font-size:12px;color:var(--muted);line-height:1.4;margin:8px 0;word-break:break-word}
+.mo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin:8px 0}
+.mo-field span{display:block;color:var(--hint);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.mo-field strong{font-size:13px;color:var(--txt);font-weight:600}
+.mo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mo-actions button,.mo-actions select{min-height:34px;font-size:12px}
+.mo-actions select{border:1px solid var(--bd);border-radius:var(--rs);padding:6px 8px;background:var(--card);font-family:inherit;flex:1}
+@media(max-width:760px){
+  .page{padding:10px 10px;max-width:100%}
+  .hdr{padding:10px;gap:8px}
+  .logo{width:100%;font-size:14px}
+  .hdr-fields{width:100%;gap:8px}
+  .fi{width:calc(50% - 4px);align-items:flex-start;flex-direction:column;gap:2px}
+  .fi input,.fi select{width:100%;min-height:34px}
+  .now-clock{margin-left:0;width:100%;font-size:12px}
+  .fr{width:100%;gap:6px}
+  .fr button{flex:1;justify-content:center;min-height:36px}
+  .tbl-wrap{display:none}
+  .mobile-orders{display:block;margin-bottom:14px}
+  .tbl-bar{align-items:stretch}
+  .tbl-bar .fr{width:auto}
+  .gen-row{display:block}
+  .gen-btn{width:100%;justify-content:center;margin-bottom:8px}
+  .gen-note{display:block;text-align:center}
+  #map{height:260px}
+  .map-placeholder{height:260px}
+  .d-card{grid-template-columns:34px 1fr;padding:12px 12px;gap:10px}
+  .d-num{width:30px;height:30px;font-size:12px}
+  .d-stats{gap:8px}
+  .d-call-row{align-items:flex-start}
+  .d-bar{width:100%;max-width:none;flex-basis:100%}
+  .route-hdr{display:block}
+  .route-hdr .fr{width:100%;margin-top:6px}
+  .r-item{padding:10px 12px}
+  .mod{width:94vw;padding:18px}
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr no-print">
+  <span class="logo">X-Motors <span>Delivery Planning</span></span>
+  <div class="hdr-fields">
+    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();subscribePlan();cloudSaveNow()"></div>
+    <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save()" title="Used by Google Maps to estimate driving time for future plans"></div>
+    <div class="fi"><span>Dispatch Warehouse</span>
+      <select id="f-depot" onchange="S.depotIdx=+this.value;save()">
+        <option value="0">BCS HEAD OFFICE (HO)</option>
+        <option value="1">BCS-1 Kelapa Gading</option>
+        <option value="2">BCS-2 PIK 2</option>
+      </select>
+    </div>
+    <div class="fi"><span class="dot" id="api-dot"></span><span id="api-lbl" style="font-size:11px"></span></div>
+    <div class="fi"><span class="sync-pill" id="sync-lbl">Cloud sync: loading</span></div>
+  </div>
+  <span class="now-clock" id="clock"></span>
+  <div class="fr">
+    <button onclick="showSet()">⚙ Settings</button>
+    <button onclick="doExport()">📊 Excel</button>
+    <button onclick="window.print()">🖨</button>
+  </div>
+</div>
+
+<div class="tbl-bar no-print">
+  <div class="fr">
+    <span style="font-weight:600;font-size:13px">Today's Orders</span>
+    <span class="badge" id="o-cnt">0</span>
+  </div>
+  <div class="fr">
+    <button onclick="togImp()">📥 Import CSV</button>
+    <button class="btn-d" onclick="addRow()">＋ Add</button>
+  </div>
+</div>
+
+<div id="imp-el" style="display:none" class="no-print">
+  <div class="imp-box">
+    <div class="fb" style="margin-bottom:6px"><span style="font-weight:500;font-size:13px">Paste CSV</span><button class="btn-d" onclick="doImp()">Import</button></div>
+    <div class="imp-fmt">Order No., Customer, Address, Closing Time, Priority(High/Medium/Low), Mode(Point-to-Point/Multi-stop)</div>
+    <textarea id="csv-in" rows="3" placeholder="ORD-001, Dealer Sunter, Jl Sunter Raya No.1 Jakarta Utara, 17:00, Medium, Point-to-Point"></textarea>
+  </div>
+</div>
+
+<div class="tbl-wrap no-print">
+  <table>
+    <thead><tr>
+      <th style="width:28px">#</th><th style="width:85px">Order No.</th><th>Customer</th><th style="min-width:170px">Address</th>
+      <th style="width:72px">Close</th><th style="width:62px">Service(min)</th><th style="width:62px">Priority</th><th style="width:92px">Status</th><th style="width:80px">Mode</th><th style="width:24px"></th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+<div class="mobile-orders no-print" id="mobile-orders"></div>
+
+<div class="gen-row no-print">
+  <button class="gen-btn" id="gen-btn" onclick="generate()">🔄 Generate Plan</button>
+  <span class="gen-note" id="gen-note">Calculate optimal dispatch sequence based on Google Maps live traffic</span>
+</div>
+
+<div id="map-wrap" style="display:none"><div id="map"></div></div>
+<div id="alert-el"></div>
+<div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
+<div class="dispatch-list" id="p2p-list"></div>
+<div id="route-el"></div>
+
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v4 · Mobile + Status v4 · Mobile + Status</div>
+</div>
+
+<!-- Settings -->
+<div class="mbg" id="set-modal" style="display:none" onclick="if(event.target===this)hideSet()">
+  <div class="mod">
+    <h3>⚙ Settings</h3>
+    <div class="mf">
+      <label>Google Maps API Key</label>
+      <input type="password" id="si-key" placeholder="AIzaSy...">
+      <div class="ht">Enable Maps JavaScript API + Distance Matrix API in Google Cloud Console. Used to calculate real driving time with traffic.</div>
+    </div>
+    <div class="mf">
+      <label>Full warehouse address (for Maps location)</label>
+      <input id="si-addr" placeholder="Example: Jl ... Jakarta">
+    </div>
+    <div class="mf">
+      <label>Lalamove pickup lead time (minutes)</label>
+      <input type="number" id="si-pickup" value="20" min="5" max="60" step="5">
+      <div class="ht">Average time from placing a Lalamove order to driver pickup at warehouse</div>
+    </div>
+    <div class="mf">
+      <label>Multi-stop departure time</label>
+      <input type="time" id="si-depart" value="08:00">
+    </div>
+    <div class="mod-btns">
+      <button onclick="hideSet()">Cancel</button>
+      <button class="btn-d" onclick="saveSet()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEPOTS=[
+  {name:'BCS HEAD OFFICE (HO)', addr:''},
+  {name:'BCS-1 Kelapa Gading', addr:''},
+  {name:'BCS-2 PIK 2', addr:''}
+];
+
+let S={apiKey:'',depotIdx:0,date:todayStr(),trafficTime:'08:00',pickupMin:20,departTime:'08:00',orders:[],nid:1};
+let _map=null, _markers=[], _plan=null;
+
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function t2m(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m}
+function m2t(m){if(m==null||isNaN(m))return'—';m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function buildPlanDateTime(timeStr){
+  const dateStr=S.date||todayStr();
+  const t=timeStr||S.trafficTime||'08:00';
+  const [h,m]=t.split(':').map(Number);
+  const d=new Date(dateStr+'T00:00:00');
+  d.setHours(h||0,m||0,0,0);
+  // Google traffic model only accepts now or future; if selected time is already past, use now.
+  const now=new Date();
+  return d<now?now:d;
+}
+function isTodayPlan(){return (S.date||todayStr())===todayStr()}
+function planBaseMin(){return isTodayPlan()?nowMin():t2m(S.trafficTime||'08:00')}
+function saveLocal(){
+  try{
+    const localCopy={...S,orders:[],depots:DEPOTS};
+    localStorage.setItem('xmd2',JSON.stringify(localCopy));
+  }catch(e){}
+}
+function save(){
+  saveLocal();
+  cloudSaveDebounced();
+}
+function load(){
+  try{
+    const r=localStorage.getItem('xmd2');if(!r)return;
+    const p=JSON.parse(r);
+    Object.assign(S,p);
+    if(p.depots)p.depots.forEach((d,i)=>{if(DEPOTS[i])DEPOTS[i].addr=d.addr||''});
+  }catch(e){}
+}
+function setSyncStatus(text,type){
+  const el=document.getElementById('sync-lbl');
+  if(!el)return;
+  el.textContent=text;
+  el.style.color=type==='ok'?'var(--ok)':type==='err'?'var(--err)':'var(--muted)';
+  el.style.borderColor=type==='ok'?'#9ed8c4':type==='err'?'#e8adad':'var(--bd)';
+}
+function planDocRef(){
+  return db.collection('dispatchPlans').doc(S.date||todayStr());
+}
+
+function cleanOrderForCloud(o){
+  if(!o)return o;
+  const x={...o};
+  delete x.coord;
+  return x;
+}
+function cleanPlanForCloud(){
+  if(!_plan)return null;
+  return {
+    depotName:_plan.depotName||'',
+    p2p:Array.isArray(_plan.p2p)?_plan.p2p.map(cleanOrderForCloud):[],
+    route:Array.isArray(_plan.route)?_plan.route.map(cleanOrderForCloud):[],
+    generatedAt:new Date().toISOString()
+  };
+}
+
+function cloudPayload(){
+  return {
+    date:S.date||todayStr(),
+    depotIdx:S.depotIdx||0,
+    trafficTime:S.trafficTime||'08:00',
+    pickupMin:S.pickupMin||20,
+    departTime:S.departTime||'08:00',
+    nid:S.nid||1,
+    orders:S.orders||[],
+    plan:cleanPlanForCloud(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+function cloudSaveDebounced(){
+  if(_cloudLoading)return;
+  clearTimeout(_cloudSaveTimer);
+  _cloudSaveTimer=setTimeout(cloudSaveNow,450);
+}
+async function cloudSaveNow(){
+  if(_cloudLoading)return;
+  try{
+    _cloudSaving=true;
+    setSyncStatus('Cloud sync: saving','');
+    await planDocRef().set(cloudPayload(),{merge:true});
+    setSyncStatus('Cloud sync: saved','ok');
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Cloud sync: error','err');
+  }finally{
+    _cloudSaving=false;
+  }
+}
+function applyRemoteData(data){
+  if(!data)return;
+  _cloudLoading=true;
+  S.depotIdx=data.depotIdx??S.depotIdx??0;
+  S.trafficTime=data.trafficTime||S.trafficTime||'08:00';
+  S.pickupMin=data.pickupMin||S.pickupMin||20;
+  S.departTime=data.departTime||S.departTime||'08:00';
+  S.nid=data.nid||S.nid||1;
+  S.orders=Array.isArray(data.orders)?data.orders:[];
+  _plan=data.plan||null;
+  saveLocal();
+  const fd=document.getElementById('f-date'); if(fd)fd.value=S.date||todayStr();
+  const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
+  const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
+  const siPickup=document.getElementById('si-pickup'); if(siPickup)siPickup.value=S.pickupMin||20;
+  const siDepart=document.getElementById('si-depart'); if(siDepart)siDepart.value=S.departTime||'08:00';
+  renderTable();
+  updateApiDot();
+  if(_plan){renderResults();}
+  _cloudLoading=false;
+}
+function subscribePlan(){
+  try{
+    if(_cloudUnsub)_cloudUnsub();
+    setSyncStatus('Cloud sync: connecting','');
+    _cloudUnsub=planDocRef().onSnapshot((snap)=>{
+      if(!snap.exists){
+        setSyncStatus('Cloud sync: new plan','');
+        if((S.orders||[]).length)cloudSaveNow();
+        return;
+      }
+      applyRemoteData(snap.data());
+      setSyncStatus('Cloud sync: live','ok');
+    },(err)=>{
+      console.error(err);
+      setSyncStatus('Cloud sync: permission/error','err'); alert('Firebase permission/error. Please check Firestore Rules or browser console.');
+    });
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Cloud sync: error','err');
+  }
+}
+
+// ── CLOCK ──
+function updateClock(){document.getElementById('clock').textContent='⏱ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}
+
+// ── MAPS ──
+let _mapsOk=false,_mapsLoading=false;
+function loadMaps(key){
+  if(_mapsOk&&window.google?.maps)return Promise.resolve();
+  if(_mapsLoading)return new Promise(r=>setTimeout(()=>r(loadMaps(key)),500));
+  return new Promise((res,rej)=>{
+    _mapsLoading=true;
+    window.__mc=()=>{_mapsOk=true;_mapsLoading=false;res()};
+    const s=document.createElement('script');
+    s.src=`https://maps.googleapis.com/maps/api/js?key=${key}&callback=__mc`;
+    s.onerror=()=>{_mapsLoading=false;rej(new Error('Maps API 加载失败'))};
+    document.head.appendChild(s);
+  });
+}
+function geocode(addr,ms){
+  return new Promise(res=>{
+    const timer=setTimeout(()=>res(null),ms||5000);
+    try{
+      new google.maps.Geocoder().geocode({address:addr,region:'id'},(r,st)=>{
+        clearTimeout(timer);
+        res(st==='OK'&&r[0]?r[0].geometry.location:null);
+      });
+    }catch(e){clearTimeout(timer);res(null)}
+  });
+}
+function timeoutPromise(ms,msg){
+  return new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg||'请求超时')),ms));
+}
+function dmRequest(origins,destinations,timeoutMs){
+  const svc=new google.maps.DistanceMatrixService();
+  return Promise.race([
+    new Promise((res,rej)=>{
+      svc.getDistanceMatrix({
+        origins,destinations,
+        travelMode:google.maps.TravelMode.DRIVING,
+        unitSystem:google.maps.UnitSystem.METRIC,
+        drivingOptions:{departureTime:buildPlanDateTime(S.trafficTime||'08:00')}
+      },(resp,st)=>{
+        if(st!=='OK'){
+          rej(new Error('Distance Matrix: '+st+'。请检查 API 是否开启 Distance Matrix、Billing、Key 限制，以及Address是否有效'));
+          return;
+        }
+        res(resp);
+      });
+    }),
+    timeoutPromise(timeoutMs||15000,'Distance Matrix 请求超时：可能是 API 限制、网络问题或Address过多')
+  ]);
+}
+async function getDistMatrix(origin,destinations){
+  const results=Array.from({length:destinations.length},()=>({ok:false}));
+  const indexed=destinations.map((d,i)=>({d:(d||'').trim(),i})).filter(x=>x.d);
+  if(!indexed.length)return results;
+
+  // Google Distance Matrix 单次 destination 太多时容易卡住/超限，这里按 25 个Address分批。
+  const chunkSize=25;
+  for(let start=0;start<indexed.length;start+=chunkSize){
+    const chunk=indexed.slice(start,start+chunkSize);
+    const resp=await dmRequest([origin],chunk.map(x=>x.d),18000);
+    const row=resp.rows?.[0]?.elements||[];
+    row.forEach((el,j)=>{
+      const idx=chunk[j].i;
+      if(!el||el.status!=='OK'){
+        results[idx]={ok:false,status:el?.status||'NO_RESULT'};
+        return;
+      }
+      const dur=el.duration_in_traffic?el.duration_in_traffic.value:el.duration.value;
+      results[idx]={ok:true,distKm:+(el.distance.value/1000).toFixed(1),transitMin:Math.round(dur/60),hasTraffic:!!el.duration_in_traffic};
+    });
+    // 轻微间隔，降Low OVER_QUERY_LIMIT 风险
+    if(start+chunkSize<indexed.length)await new Promise(r=>setTimeout(r,250));
+  }
+  return results;
+}
+async function getFullMatrix(locations){
+  const n=locations.length;
+  const m=Array.from({length:n},()=>Array.from({length:n},()=>999));
+  const chunkSize=25;
+  for(let i=0;i<n;i++){
+    const origin=(locations[i]||'').trim();
+    if(!origin)continue;
+    for(let start=0;start<n;start+=chunkSize){
+      const destChunk=locations.slice(start,start+chunkSize).map(x=>(x||'').trim());
+      const resp=await dmRequest([origin],destChunk,18000);
+      const row=resp.rows?.[0]?.elements||[];
+      row.forEach((el,j)=>{
+        if(el&&el.status==='OK')m[i][start+j]=Math.round((el.duration_in_traffic||el.duration).value/60);
+      });
+      if(start+chunkSize<n)await new Promise(r=>setTimeout(r,200));
+    }
+  }
+  return m;
+}
+
+
+function invalidatePlan(){
+  _plan=null;
+  const p2p=document.getElementById('p2p-list'); if(p2p)p2p.innerHTML='';
+  const route=document.getElementById('route-el'); if(route)route.innerHTML='';
+  const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
+}
+
+
+const ORDER_STATUSES=['Pending','Preparing','Called Driver','Picked Up','Delivered','Failed / Reschedule'];
+function statusClass(s){
+  if(s==='Preparing')return 'st-preparing';
+  if(s==='Called Driver')return 'st-called';
+  if(s==='Picked Up')return 'st-picked';
+  if(s==='Delivered')return 'st-delivered';
+  if(s==='Failed / Reschedule')return 'st-failed';
+  return 'st-pending';
+}
+function renderStatusOptions(cur){
+  return ORDER_STATUSES.map(s=>'<option'+((cur||'Pending')===s?' selected':'')+'>'+s+'</option>').join('');
+}
+function openNav(addr){
+  if(!addr){alert('No address');return}
+  window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(addr),'_blank');
+}
+function renderMobileOrders(){
+  const el=document.getElementById('mobile-orders');
+  if(!el)return;
+  if(!S.orders.length){el.innerHTML='<div class="empty-row">No orders yet — add or import orders</div>';return}
+  el.innerHTML=S.orders.map((o,i)=>{
+    const st=o.status||'Pending';
+    const mc=o.mode==='Multi-stop'||o.mode==='途径'?'m-multi':'m-p2p';
+    return `<div class="mo-card">
+      <div class="mo-top">
+        <div>
+          <div class="mo-title">${i+1}. ${o.name||'Unnamed customer'}</div>
+          <div class="mo-sub">${o.orderNo||'No order number'}</div>
+        </div>
+        <span class="st-pill ${statusClass(st)}">${st}</span>
+      </div>
+      <div class="mo-addr">📍 ${o.address||'No address'}</div>
+      <div class="mo-grid">
+        <div class="mo-field"><span>Close</span><strong>${o.closeTime||'—'}</strong></div>
+        <div class="mo-field"><span>Priority</span><strong>${o.priority||'Medium'}</strong></div>
+        <div class="mo-field"><span>Mode</span><strong>${o.mode||'Point-to-Point'}</strong></div>
+        <div class="mo-field"><span>Service</span><strong>${o.serviceMin||15} min</strong></div>
+      </div>
+      <div class="mo-actions">
+        <select onchange="setF(${o.id},'status',this.value)">${renderStatusOptions(st)}</select>
+        <button onclick="openNav('${String(o.address||'').replace(/'/g,"\\'")}')">🗺 Navigate</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ORDERS ──
+function addRow(d){
+  S.orders.push({id:S.nid++,orderNo:d?.orderNo||'',name:d?.name||'',address:d?.address||'',closeTime:d?.closeTime||'',serviceMin:parseInt(d?.serviceMin)||15,priority:d?.priority||'Medium',mode:d?.mode||'Point-to-Point',status:d?.status||'Pending'});
+  invalidatePlan();save();renderTable();
+}
+function delRow(id){S.orders=S.orders.filter(o=>o.id!==id);invalidatePlan();save();renderTable()}
+function setF(id,k,v){const o=S.orders.find(o=>o.id===id);if(!o)return;o[k]=v;if(k!=='status')invalidatePlan();save();renderTable()}
+function togMode(id){const o=S.orders.find(o=>o.id===id);if(!o)return;o.mode=o.mode==='Point-to-Point'?'Multi-stop':'Point-to-Point';invalidatePlan();save();renderTable()}
+function togImp(){const e=document.getElementById('imp-el');e.style.display=e.style.display==='none'?'block':'none'}
+function doImp(){
+  const lines=document.getElementById('csv-in').value.trim().split('\n').filter(l=>l.trim());let n=0;
+  lines.forEach((line,i)=>{
+    const p=line.split(',').map(s=>s.trim());if(p.length<2)return;
+    if(i===0&&(p[0].includes('号')||p[0].toLowerCase()==='no'))return;
+    const mode=(p[5]||'').includes('途')?'Multi-stop':'Point-to-Point';
+    let pri='Medium';if((p[4]||'').includes('High'))pri='High';else if((p[4]||'').includes('Low'))pri='Low';
+    addRow({orderNo:p[0],name:p[1],address:p[2]||'',closeTime:p[3]||'',serviceMin:15,priority:pri,mode});n++;
+  });
+  document.getElementById('csv-in').value='';document.getElementById('imp-el').style.display='none';
+  alert('✓ Imported '+n+' rows');
+}
+function renderTable(){
+  const tb=document.getElementById('tbody');
+  document.getElementById('o-cnt').textContent=S.orders.length+' 单';
+  if(!S.orders.length){tb.innerHTML='<tr><td colspan="10" class="empty-row">还没有Orders — 添加或导入</td></tr>';return}
+  tb.innerHTML=S.orders.map((o,i)=>{
+    const mc=o.mode==='Multi-stop'?'m-multi':'m-p2p';
+    return`<tr>
+      <td style="color:var(--hint);font-size:12px">${i+1}</td>
+      <td><input class="ci" value="${o.orderNo}" onchange="setF(${o.id},'orderNo',this.value)" style="width:78px" placeholder="ORD-001"></td>
+      <td><input class="ci" value="${o.name}" onchange="setF(${o.id},'name',this.value)" placeholder="Customer名"></td>
+      <td><input class="ci" value="${o.address}" onchange="setF(${o.id},'address',this.value)" placeholder="完整Address"></td>
+      <td><input type="time" class="ci" value="${o.closeTime}" onchange="setF(${o.id},'closeTime',this.value)" style="width:72px"></td>
+      <td><input type="number" class="ci" value="${o.serviceMin}" onchange="setF(${o.id},'serviceMin',this.value)" style="width:50px" min="5" step="5"></td>
+      <td><select class="pri-s" onchange="setF(${o.id},'priority',this.value)">${['High','Medium','Low'].map(p=>'<option'+(o.priority===p?' selected':'')+'>'+p+'</option>').join('')}</select></td>
+      <td><select class="status-s" onchange="setF(${o.id},'status',this.value)">${renderStatusOptions(o.status)}</select></td>
+      <td><button class="${mc} mode-btn" onclick="togMode(${o.id})">${o.mode}</button></td>
+      <td><button class="btn-del" onclick="delRow(${o.id})">✕</button></td>
+    </tr>`}).join('');
+  renderMobileOrders();
+}
+
+// ── GENERATE ──
+async function generate(){
+  if(!S.orders.length){alert('Please add orders first');return}
+  const btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note');
+  btn.disabled=true;btn.textContent='⏳ 规划Medium...';
+  try{
+    if(!S.apiKey)throw new Error('Please configure Google Maps API Key in Settings first');
+    note.textContent='Loading Google Maps...';
+    await loadMaps(S.apiKey);
+
+    const depot=DEPOTS[S.depotIdx];
+    const depotAddr=depot.addr||depot.name;
+
+    // Phase 1: Distance Matrix（直接用Address字符串，不需要 geocoding）
+    note.textContent='Calculating traffic driving time...（Orders较多会自动分批）';
+    const orderAddrs=S.orders.map(o=>o.address||o.name);
+    const dm=await getDistMatrix(depotAddr,orderAddrs);
+
+    const pickup=S.pickupMin||20;
+    const p2p=[],multi=[];
+    S.orders.forEach((o,i)=>{
+      const d=dm[i];
+      const cl=t2m(o.closeTime);
+      const transit=d.ok?d.transitMin:null;
+      const dist=d.ok?d.distKm:null;
+      const latestCall=cl!=null&&transit!=null?cl-transit-pickup:null;
+      const item={...o,coord:null,transit,dist,latestCall,hasTraffic:d.ok?d.hasTraffic:false};
+      if(o.mode==='Multi-stop')multi.push(item);else p2p.push(item);
+    });
+
+    const priW={High:0,Medium:1,Low:2};
+    p2p.sort((a,b)=>{
+      const la=a.latestCall??9999,lb=b.latestCall??9999;
+      if(la!==lb)return la-lb;
+      return(priW[a.priority]??1)-(priW[b.priority]??1);
+    });
+
+    let routeResult=null;
+    if(multi.length>1){
+      note.textContent='Optimizing multi-stop route...';
+      const rLocs=[depotAddr,...multi.map(o=>o.address||o.name)];
+      const fm=await getFullMatrix(rLocs);
+      routeResult=optimizeRoute(multi,fm,t2m(S.departTime)||480);
+    }else if(multi.length===1){
+      const o=multi[0];const dep=t2m(S.departTime)||480;
+      routeResult=[{...o,trav:o.transit||30,arr:dep+(o.transit||30),st:dep+(o.transit||30),lv:dep+(o.transit||30)+(o.serviceMin||15),status:'ok'}];
+    }
+
+    _plan={p2p,route:routeResult,depotCoord:null,depotName:depot.name};
+    note.textContent='✓ Plan generated';
+    btn.disabled=false;btn.textContent='🔄 Generate Plan';
+    renderResults();
+    cloudSaveNow();
+
+    // Phase 2: Geocoding for map（后台异步，不阻塞结果）
+    note.textContent='✓ Plan generated · loading map markers...';
+    await loadMapAsync(depotAddr);
+    note.textContent='✓ Plan generated';
+
+  }catch(e){
+    alert('Planning failed: '+e.message);
+    note.textContent='Planning error';
+    btn.disabled=false;btn.textContent='🔄 Generate Plan';
+  }
+}
+
+async function loadMapAsync(depotAddr){
+  try{
+    const depotCoord=await geocode(depotAddr,6000);
+    const allItems=[...(_plan.p2p||[]),...(_plan.route||[])];
+    const mapsLink='https://www.google.com/maps/dir/'+[depotAddr,...allItems.map(o=>o.address||o.name)].map(a=>encodeURIComponent(a)).join('/');
+    if(!depotCoord){
+      document.getElementById('map-wrap').style.display='block';
+      document.getElementById('map').innerHTML='<div class="map-placeholder">Map location requires Geocoding API (optional)<br>Core functions are not affected<br><br><a href="'+mapsLink+'" target="_blank" style="color:var(--ok)">📍 View full route in Google Maps →</a></div>';
+      return;
+    }
+    _plan.depotCoord=depotCoord;
+    document.getElementById('map-wrap').style.display='block';
+    if(!_map){
+      _map=new google.maps.Map(document.getElementById('map'),{
+        zoom:12,center:depotCoord,
+        mapTypeControl:false,streetViewControl:false,fullscreenControl:true,
+        styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
+      });
+    }else{_map.setCenter(depotCoord)}
+    _markers.forEach(m=>m.setMap(null));_markers=[];
+    const bounds=new google.maps.LatLngBounds();
+    bounds.extend(depotCoord);
+    _markers.push(new google.maps.Marker({
+      position:depotCoord,map:_map,
+      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:'#1a56db',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:10},
+      label:{text:'仓',color:'#fff',fontSize:'10px',fontWeight:'700'},
+      title:_plan.depotName,zIndex:100
+    }));
+    for(let i=0;i<allItems.length;i++){
+      const o=allItems[i];
+      const coord=await geocode(o.address||o.name,4000);
+      if(!coord)continue;
+      o.coord=coord;bounds.extend(coord);
+      const now=nowMin(),lc=o.latestCall??9999,remain=lc-now;
+      const color=remain<0?'#888':remain<30?'#952828':remain<90?'#b06e0e':'#0d6b52';
+      const mk=new google.maps.Marker({
+        position:coord,map:_map,
+        icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:12},
+        label:{text:String(i+1),color:'#fff',fontSize:'10px',fontWeight:'700'},
+        title:o.name,zIndex:50
+      });
+      const iw=new google.maps.InfoWindow({
+        content:`<div style="font-family:sans-serif;font-size:13px;line-height:1.6;min-width:180px">
+          <strong>${o.name}</strong>${o.orderNo?' <small style="color:#999">('+o.orderNo+')</small>':''}
+          <br><span style="color:#636358">${o.address||'—'}</span>
+          ${o.dist!=null?'<br>🚗 '+o.dist+'km · '+o.transit+'分'+(o.hasTraffic?' (Traffic Included)':''):''}
+          ${o.closeTime?'<br>🕐 Close '+o.closeTime:''}
+          ${o.latestCall!=null?'<br>📞 <strong>Latest call '+m2t(o.latestCall)+'</strong>':''}
+        </div>`
+      });
+      mk.addListener('click',()=>iw.open(_map,mk));
+      _markers.push(mk);
+      _map.fitBounds(bounds,{top:40,bottom:40,left:40,right:40});
+      if(i<allItems.length-1)await new Promise(r=>setTimeout(r,120));
+    }
+  }catch(e){
+    console.log('Map loading error (non-critical):',e);
+  }
+}
+
+function optimizeRoute(orders,matrix,departMin){
+  const n=orders.length,visited=Array(n).fill(false),seq=[];
+  let cur=0,curTime=departMin;
+  for(let step=0;step<n;step++){
+    let best=-1,bestScore=1e9;
+    for(let i=0;i<n;i++){
+      if(visited[i])continue;
+      const trav=matrix[cur][i+1]??30;
+      const arr=curTime+trav;
+      const cl=t2m(orders[i].closeTime);
+      const late=(cl&&arr>cl)?(arr-cl)*500:0;
+      const pri={High:0,Medium:5,Low:15}[orders[i].priority]||5;
+      if(trav+late+pri<bestScore){bestScore=trav+late+pri;best=i}
+    }
+    if(best===-1)break;
+    visited[best]=true;
+    const trav=matrix[cur][best+1]??30;
+    const arr=curTime+trav;
+    const op=t2m(orders[best].openTime);
+    const cl=t2m(orders[best].closeTime);
+    const st=(op&&arr<op)?op:arr;
+    const lv=st+(orders[best].serviceMin||15);
+    let status='ok';
+    if(cl&&arr>cl)status='late';else if(cl&&lv>cl)status='warn';else if(cl&&(cl-st)<30)status='warn';
+    seq.push({...orders[best],trav,arr,st,lv,status});
+    curTime=lv;cur=best+1;
+  }
+  return seq;
+}
+
+
+// ── RENDER RESULTS ──
+function renderResults(){
+  if(!_plan)return;
+  renderP2P();
+  renderRoute();
+  updateUrgency();
+}
+
+function renderP2P(){
+  const list=document.getElementById('p2p-list');
+  const lbl=document.getElementById('p2p-lbl');
+  const alert_el=document.getElementById('alert-el');
+  const p2p=_plan.p2p;
+  if(!p2p.length){lbl.style.display='none';list.innerHTML='';alert_el.innerHTML='';return}
+  lbl.style.display='block';
+  const now=planBaseMin();
+  const pickup=S.pickupMin||20;
+  const futurePlan=!isTodayPlan();
+
+  // Alert banner
+  const most=p2p[0];
+  const mostRemain=most.latestCall!=null?most.latestCall-now:9999;
+  if(mostRemain<0){
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${m2t(most.latestCall)}），please handle immediately!</div></div>`;
+  }else if(mostRemain<30){
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${m2t(most.latestCall)}</strong> (remaining ${mostRemain} minutes)</div></div>`;
+  }else{
+    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${m2t(most.latestCall)} (remaining ${Math.floor(mostRemain/60)}h${mostRemain%60}m）</div></div>`;
+  }
+
+  list.innerHTML=p2p.map((o,i)=>{
+    const lc=o.latestCall;
+    const remain=lc!=null?lc-now:9999;
+    const urg=remain<0?'missed':remain<30?'urgent':remain<90?'soon':'safe';
+    const urgLabel={missed:'Overdue',urgent:'Urgent',soon:'Soon',safe:'Safe'}[urg];
+    const pCls='p-'+urg;
+    const barPct=lc!=null?Math.max(0,Math.min(100,remain/(t2m(o.closeTime)-now+1)*100)):100;
+    const barColor=urg==='safe'?'var(--ok)':urg==='soon'?'var(--warn)':'var(--err)';
+    return`<div class="d-card ${urg}">
+      <div class="d-num ${urg}">${i+1}</div>
+      <div>
+        <div class="d-top">
+          <span class="d-name">${o.name}</span>
+          ${o.orderNo?'<span class="badge">'+o.orderNo+'</span>':''}
+          <span class="st-pill '+statusClass(o.status||'Pending')+'">'+(o.status||'Pending')+'</span>
+          <span class="pill ${pCls}">${urgLabel}</span>
+          <span class="mode-btn m-p2p" style="cursor:default">Point-to-Point</span>
+        </div>
+        <div class="d-addr" title="${o.address}">📍 ${o.address||'— Address missing —'}</div>
+        <div class="d-stats">
+          ${o.dist!=null?`<span>🚗 <strong>${o.dist} km</strong> · ${o.transit}分${o.hasTraffic?' (with traffic)':''}</span>`:''}
+          <span>🕐 Close <strong>${o.closeTime||'—'}</strong></span>
+          <span>⏱ Lalamove pickup ${pickup}分</span>
+        </div>
+        <div class="d-call-row">
+          <span style="font-size:12px;color:var(--muted)">Latest Call</span>
+          <span class="d-call ${urg}">${lc!=null?m2t(lc):'—'}</span>
+          <span class="d-remain">${remain>0?'Remaining '+(remain>=60?Math.floor(remain/60)+'h':'')+(remain%60)+'m':'Overdue'}</span>
+          <div class="d-bar"><div class="d-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
+        </div>
+      </div>
+    </div>`}).join('');
+}
+
+function renderRoute(){
+  const el=document.getElementById('route-el');
+  const r=_plan.route;
+  if(!r||!r.length){el.innerHTML='';return}
+  const depotAddr=DEPOTS[S.depotIdx].addr||DEPOTS[S.depotIdx].name;
+  const mapsUrl='https://www.google.com/maps/dir/'+[depotAddr,...r.map(o=>o.address||o.name)].map(a=>encodeURIComponent(a)).join('/');
+  const endTime=r[r.length-1].lv;
+  el.innerHTML=`<div class="sec-lbl">Multi-stop Route (Own Vehicle)</div>
+    <div class="route-section">
+      <div class="route-hdr">
+        <div class="fr"><strong style="font-size:13px">🟢 Multi-stop Route</strong><span class="badge">${r.length} stops</span><span style="font-size:12px;color:var(--muted)">Depart ${S.departTime} → Finish ${m2t(endTime)}</span></div>
+        <div class="fr"><a href="${mapsUrl}" target="_blank" style="text-decoration:none"><button style="font-size:12px">🗺 Maps Navigation</button></a></div>
+      </div>
+      <div class="route-body">${r.map((o,i)=>{
+        const sc=o.status==='ok'?'ok':o.status==='warn'?'warn':'late';
+        return`<div class="r-item">
+          <div class="r-n ${sc}">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:500;font-size:13px">${o.name}${o.orderNo?' <span class="badge">'+o.orderNo+'</span>':''}</div>
+            <div style="font-size:12px;color:var(--muted)">${o.address||'—'}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">
+              Arrive <strong style="color:var(--txt)">${m2t(o.arr)}</strong> · Leave ${m2t(o.lv)} · Open until ${o.closeTime||'—'}
+            </div>
+          </div>
+        </div>`}).join('')}</div>
+    </div>`;
+}
+
+function updateUrgency(){
+  if(_plan?.p2p?.length)renderP2P();
+}
+
+// ── EXPORT ──
+function doExport(){
+  if(!window.XLSX){alert('Loading');return}
+  const wb=XLSX.utils.book_new();
+  if(_plan?.p2p?.length){
+    const d=[['Dispatch Sequence','单号','Customer','Address','Distance(km)','Driving(min)','Traffic Included','Close','Lalamove Pickup(min)','Latest Call','Priority']];
+    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCall!=null?m2t(o.latestCall):'',o.priority,o.status||'Pending']));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Point-to-Point');
+  }
+  if(_plan?.route?.length){
+    const d=[['Sequence','单号','Customer','Address','Driving(min)','Arrive','Leave','Close','Status']];
+    _plan.route.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,Math.round(o.trav),m2t(o.arr),m2t(o.lv),o.closeTime,o.status,o.status||'Pending']));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Multi-stop');
+  }
+  if(!_plan){
+    const d=[['单号','Customer','Address','Close','Priority','Delivery Mode']];
+    S.orders.forEach(o=>d.push([o.orderNo,o.name,o.address,o.closeTime,o.priority,o.mode,o.status||'Pending']));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Orders');
+  }
+  XLSX.writeFile(wb,`X-Motors_${S.date}.xlsx`);
+}
+
+// ── SETTINGS ──
+function showSet(){
+  document.getElementById('si-key').value=S.apiKey;
+  document.getElementById('si-addr').value=DEPOTS[S.depotIdx].addr||'';
+  document.getElementById('si-pickup').value=S.pickupMin;
+  document.getElementById('si-depart').value=S.departTime;
+  document.getElementById('set-modal').style.display='flex';
+}
+function hideSet(){document.getElementById('set-modal').style.display='none'}
+function saveSet(){
+  S.apiKey=document.getElementById('si-key').value.trim();
+  DEPOTS[S.depotIdx].addr=document.getElementById('si-addr').value.trim();
+  S.pickupMin=parseInt(document.getElementById('si-pickup').value)||20;
+  S.departTime=document.getElementById('si-depart').value;
+  save();hideSet();updateApiDot();
+}
+function updateApiDot(){
+  const d=document.getElementById('api-dot'),l=document.getElementById('api-lbl');
+  if(S.apiKey){d.className='dot ok';l.textContent='Maps API ✓';l.style.color='var(--ok)'}
+  else{d.className='dot no';l.textContent='Maps API not configured';l.style.color='var(--hint)'}
+}
+
+// ── INIT ──
+load();
+document.getElementById('f-date').value=S.date||todayStr();
+document.getElementById('f-traffic').value=S.trafficTime||'08:00';
+document.getElementById('f-depot').value=S.depotIdx;
+updateApiDot();renderTable();updateClock();
+setInterval(updateClock,30000);
+setInterval(updateUrgency,60000);
+</script>
+
+<script>
+// FORCE_FIREBASE_SYNC_INIT
+(function(){
+  function bootCloudSync(){
+    try{
+      if(typeof setSyncStatus === 'function') setSyncStatus('Cloud sync: connecting','');
+      if(typeof subscribePlan === 'function'){
+        subscribePlan();
+      }else{
+        const el=document.getElementById('sync-lbl');
+        if(el){
+          el.textContent='Cloud sync: script not ready';
+          el.style.color='var(--err)';
+          el.style.borderColor='#e8adad';
+        }
+        console.error('subscribePlan function not found');
+      }
+    }catch(e){
+      const el=document.getElementById('sync-lbl');
+      if(el){
+        el.textContent='Cloud sync: init error';
+        el.style.color='var(--err)';
+        el.style.borderColor='#e8adad';
+      }
+      console.error('Cloud sync init error:', e);
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(bootCloudSync, 300);
+    });
+  }else{
+    setTimeout(bootCloudSync, 300);
+  }
+})();
+</script>
+
+</body>
+</html>
