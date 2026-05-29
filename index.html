@@ -183,6 +183,24 @@ tbody tr:hover td{background:#fafaf8}
   .mod{width:94vw;padding:18px}
 }
 
+
+/* Mobile route overview */
+.route-tools{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.route-tools .rt-title{font-size:13px;font-weight:600}
+.route-tools .rt-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.route-tools a{text-decoration:none}
+.mobile-map-note{display:none;font-size:11px;color:var(--muted);text-align:center;margin:6px 0 12px}
+@media(max-width:760px){
+  #map-wrap{display:block;margin-bottom:12px}
+  #map{height:300px}
+  .map-placeholder{height:300px;font-size:12px}
+  .route-tools{display:block}
+  .route-tools button{width:100%;justify-content:center;margin-top:8px;min-height:38px}
+  .mobile-map-note{display:block}
+  .p2p-lbl,.sec-lbl{font-size:10px}
+  .d-addr{white-space:normal;overflow:visible;text-overflow:clip}
+}
+
 </style>
 </head>
 <body>
@@ -256,13 +274,15 @@ cloudSaveNow()"></div>
   <span class="gen-note" id="gen-note">Calculate optimal dispatch sequence based on Google Maps live traffic</span>
 </div>
 
+<div id="route-tools"></div>
+<div class="mobile-map-note">Map overview is available after generating the plan. Use the Maps button if the embedded map is slow on mobile.</div>
 <div id="map-wrap" style="display:none"><div id="map"></div></div>
 <div id="alert-el"></div>
 <div class="sec-lbl" id="p2p-lbl" style="display:none">Point-to-Point Dispatch Sequence (Lalamove)</div>
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v6 · Sync Fix</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v7 · Mobile Map + Depot Presets</div>
 </div>
 
 <!-- Settings -->
@@ -374,6 +394,7 @@ function cloudPayload(){
     departTime:S.departTime||'08:00',
     nid:S.nid||1,
     orders:S.orders||[],
+    depots:DEPOTS.map(d=>({name:d.name,addr:d.addr||''})),
     plan:cleanPlanForCloud(),
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -409,6 +430,7 @@ function clearPlanResults(){
   const route=document.getElementById('route-el'); if(route)route.innerHTML='';
   const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
   const lbl=document.getElementById('p2p-lbl'); if(lbl)lbl.style.display='none';
+  const rt=document.getElementById('route-tools'); if(rt)rt.innerHTML='';
 }
 
 function applyRemoteData(data){
@@ -420,6 +442,7 @@ function applyRemoteData(data){
   S.departTime=data.departTime||S.departTime||'08:00';
   S.nid=data.nid||S.nid||1;
   S.orders=Array.isArray(data.orders)?data.orders:[];
+  if(Array.isArray(data.depots)){data.depots.forEach((d,i)=>{if(DEPOTS[i])DEPOTS[i].addr=d.addr||DEPOTS[i].addr||''})}
   _plan=hasRemotePlan(data)?data.plan:null;
   saveLocal();
   const fd=document.getElementById('f-date'); if(fd)fd.value=S.date||todayStr();
@@ -661,9 +684,19 @@ function renderTable(){
   renderMobileOrders();
 }
 
+
+function validateDepotAddress(){
+  const depot=DEPOTS[S.depotIdx];
+  if(!depot.addr){
+    return confirm('The selected warehouse has no preset address. Google Maps will use the warehouse name only, which may be inaccurate. Continue?');
+  }
+  return true;
+}
+
 // ── GENERATE ──
 async function generate(){
   if(!S.orders.length){alert('Please add orders first');return}
+  if(!validateDepotAddress())return;
   const btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note');
   btn.disabled=true;btn.textContent='⏳ 规划Medium...';
   try{
@@ -819,8 +852,36 @@ function optimizeRoute(orders,matrix,departMin){
 
 
 // ── RENDER RESULTS ──
+
+function getPlanItemsForMap(){
+  if(!_plan)return [];
+  return [...(_plan.p2p||[]),...(_plan.route||[])];
+}
+function buildAllRouteUrl(){
+  const depotAddr=DEPOTS[S.depotIdx].addr||DEPOTS[S.depotIdx].name;
+  const items=getPlanItemsForMap();
+  if(!items.length)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(depotAddr);
+  return 'https://www.google.com/maps/dir/'+[depotAddr,...items.map(o=>o.address||o.name)].map(a=>encodeURIComponent(a)).join('/');
+}
+function renderRouteTools(){
+  const el=document.getElementById('route-tools');
+  if(!el)return;
+  const items=getPlanItemsForMap();
+  if(!items.length){el.innerHTML='';return}
+  const p2p=(_plan.p2p||[]).length, route=(_plan.route||[]).length;
+  const url=buildAllRouteUrl();
+  el.innerHTML=`<div class="route-tools">
+    <div>
+      <div class="rt-title">Route Overview</div>
+      <div class="rt-sub">${items.length} stops · ${p2p} point-to-point · ${route} multi-stop</div>
+    </div>
+    <a href="${url}" target="_blank"><button>🗺 Open Route in Google Maps</button></a>
+  </div>`;
+}
+
 function renderResults(){
   if(!_plan)return;
+  renderRouteTools();
   renderP2P();
   renderRoute();
   updateUrgency();
@@ -862,7 +923,7 @@ function renderP2P(){
         <div class="d-top">
           <span class="d-name">${o.name}</span>
           ${o.orderNo?'<span class="badge">'+o.orderNo+'</span>':''}
-          <span class="st-pill '+statusClass(o.status||'Pending')+'">'+(o.status||'Pending')+'</span>
+          <span class="st-pill ${statusClass(o.status||'Pending')}">${o.status||'Pending'}</span>
           <span class="pill ${pCls}">${urgLabel}</span>
           <span class="mode-btn m-p2p" style="cursor:default">Point-to-Point</span>
         </div>
@@ -939,7 +1000,9 @@ function doExport(){
 // ── SETTINGS ──
 function showSet(){
   document.getElementById('si-key').value=S.apiKey;
-  document.getElementById('si-addr').value=DEPOTS[S.depotIdx].addr||'';
+  const a0=document.getElementById('si-addr-0'); if(a0)a0.value=DEPOTS[0].addr||'';
+  const a1=document.getElementById('si-addr-1'); if(a1)a1.value=DEPOTS[1].addr||'';
+  const a2=document.getElementById('si-addr-2'); if(a2)a2.value=DEPOTS[2].addr||'';
   document.getElementById('si-pickup').value=S.pickupMin;
   document.getElementById('si-depart').value=S.departTime;
   document.getElementById('set-modal').style.display='flex';
@@ -947,7 +1010,9 @@ function showSet(){
 function hideSet(){document.getElementById('set-modal').style.display='none'}
 function saveSet(){
   S.apiKey=document.getElementById('si-key').value.trim();
-  DEPOTS[S.depotIdx].addr=document.getElementById('si-addr').value.trim();
+  if(document.getElementById('si-addr-0'))DEPOTS[0].addr=document.getElementById('si-addr-0').value.trim();
+  if(document.getElementById('si-addr-1'))DEPOTS[1].addr=document.getElementById('si-addr-1').value.trim();
+  if(document.getElementById('si-addr-2'))DEPOTS[2].addr=document.getElementById('si-addr-2').value.trim();
   S.pickupMin=parseInt(document.getElementById('si-pickup').value)||20;
   S.departTime=document.getElementById('si-depart').value;
   save();hideSet();updateApiDot();
