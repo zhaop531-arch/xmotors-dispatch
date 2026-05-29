@@ -258,10 +258,10 @@ tbody tr:hover td{background:#fafaf8}
 <div class="hdr no-print">
   <span class="logo">X-Motors <span>Delivery Planning</span></span>
   <div class="hdr-fields">
-    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="changeActiveDate(this.value)"></div>
-    <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save();saveGlobalState()" title="Used by Google Maps to estimate driving time for future plans"></div>
+    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="switchViewDate(this.value)"></div>
+    <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save()" title="Used by Google Maps to estimate driving time for future plans"></div>
     <div class="fi"><span>Dispatch Warehouse</span>
-      <select id="f-depot" onchange="S.depotIdx=+this.value;save();saveGlobalState()">
+      <select id="f-depot" onchange="S.depotIdx=+this.value;save()">
         <option value="0">BCS HEAD OFFICE (HO)</option>
         <option value="1">BCS-1 Kelapa Gading</option>
         <option value="2">BCS-2 PIK 2</option>
@@ -285,9 +285,13 @@ tbody tr:hover td{background:#fafaf8}
   </div>
   <div class="fr">
     <button onclick="togImp()">📥 Import CSV</button>
+    <button onclick="copyOrdersToDate()">📋 Copy Date</button>
+    <button onclick="moveOrdersToDate()">↪ Move Date</button>
     <button class="btn-d" onclick="addRow()">＋ Add</button>
   </div>
 </div>
+
+<div class="no-print" style="font-size:11px;color:var(--muted);margin:-4px 0 8px">Date is local view. Orders sync only when devices are viewing the same date. Use Copy Date / Move Date if orders were entered under the wrong date.</div>
 
 <div id="imp-el" style="display:none" class="no-print">
   <div class="imp-box">
@@ -321,7 +325,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v11 · Safe Date Switching</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v13 · Local Date + Move/Copy</div>
 </div>
 
 <!-- Settings -->
@@ -375,35 +379,6 @@ function todayStr(){return new Date().toISOString().slice(0,10)}
 function t2m(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m}
 function m2t(m){if(m==null||isNaN(m))return'—';m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes()}
-
-function dateTimeMs(dateStr,timeStr){
-  if(!dateStr||!timeStr)return null;
-  const [h,m]=timeStr.split(':').map(Number);
-  const d=new Date(dateStr+'T00:00:00');
-  d.setHours(h||0,m||0,0,0);
-  return d.getTime();
-}
-function msToClock(ms){
-  if(ms==null||isNaN(ms))return '—';
-  const d=new Date(ms);
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
-function msRemainingText(ms){
-  if(ms==null||isNaN(ms))return '—';
-  const diff=Math.round((ms-Date.now())/60000);
-  if(diff<0)return 'Overdue';
-  const d=Math.floor(diff/1440);
-  const h=Math.floor((diff%1440)/60);
-  const m=diff%60;
-  if(d>0)return `${d}d ${h}h ${m}m`;
-  if(h>0)return `${h}h ${m}m`;
-  return `${m}m`;
-}
-function minutesRemaining(ms){
-  if(ms==null||isNaN(ms))return 999999;
-  return Math.round((ms-Date.now())/60000);
-}
-
 function buildPlanDateTime(timeStr){
   const dateStr=S.date||todayStr();
   const t=timeStr||S.trafficTime||'08:00';
@@ -441,102 +416,6 @@ function setSyncStatus(text,type){
   el.style.color=type==='ok'?'var(--ok)':type==='err'?'var(--err)':'var(--muted)';
   el.style.borderColor=type==='ok'?'#9ed8c4':type==='err'?'#e8adad':'var(--bd)';
 }
-
-function globalStateRef(){
-  return db.collection('appState').doc('current');
-}
-async function saveGlobalState(){
-  if(!window.db)return;
-  try{
-    await globalStateRef().set({
-      activeDate:S.date||todayStr(),
-      trafficTime:S.trafficTime||'08:00',
-      depotIdx:S.depotIdx||0,
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    },{merge:true});
-  }catch(e){
-    console.warn('[Sync] global state save failed:', e);
-  }
-}
-
-function clearCurrentPlanData(){
-  S.orders=[];
-  _plan=null;
-  S.nid=1;
-  _lastAppliedJson='';
-  _lastRemoteVersion=0;
-  saveLocal();
-  renderTable();
-  clearPlanResults();
-}
-async function changeActiveDate(newDate){
-  if(!newDate || newDate===(S.date||todayStr()))return;
-  _switchingDate=true;
-  try{
-    S.date=newDate;
-    clearCurrentPlanData();
-    const fd=document.getElementById('f-date'); if(fd)fd.value=S.date;
-    await saveGlobalState();
-    subscribePlan();
-    await forceLoadCurrentDatePlan();
-  }finally{
-    _switchingDate=false;
-  }
-}
-async function forceLoadCurrentDatePlan(){
-  if(!window.db)return;
-  try{
-    setSyncStatus('Sync: loading date...','');
-    const snap=await planDocRef().get({source:'server'});
-    if(snap.exists){
-      applyRemoteData(snap.data());
-      setSyncStatus('Sync: date loaded ✓','ok');
-    }else{
-      clearCurrentPlanData();
-      setSyncStatus('Sync: new empty date','');
-    }
-  }catch(e){
-    console.error('[Sync] forceLoadCurrentDatePlan failed:',e);
-    setSyncStatus('Sync: date load failed','err');
-  }
-}
-
-async function applyGlobalState(data){
-  if(!data || !data.activeDate)return;
-  const newDate=data.activeDate;
-  const changed=(S.date||todayStr())!==newDate;
-  if(changed){
-    console.log('[Sync] Active date changed:', S.date, '→', newDate);
-    _switchingDate=true;
-    S.date=newDate;
-    clearCurrentPlanData();
-    if(data.trafficTime)S.trafficTime=data.trafficTime;
-    if(typeof data.depotIdx==='number')S.depotIdx=data.depotIdx;
-    saveLocal();
-    const fd=document.getElementById('f-date'); if(fd)fd.value=S.date;
-    const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
-    const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
-    subscribePlan();
-    await forceLoadCurrentDatePlan();
-    _switchingDate=false;
-  }else{
-    if(data.trafficTime)S.trafficTime=data.trafficTime;
-    if(typeof data.depotIdx==='number')S.depotIdx=data.depotIdx;
-    const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
-    const dp=document.getElementById('f-depot'); if(dp)dp.value=S.depotIdx||0;
-  }
-}
-function subscribeGlobalState(){
-  if(!window.db)return;
-  try{
-    globalStateRef().onSnapshot((snap)=>{
-      if(snap.exists)applyGlobalState(snap.data());
-    },(err)=>console.warn('[Sync] global state listener error:',err));
-  }catch(e){
-    console.warn('[Sync] global state subscribe failed:',e);
-  }
-}
-
 function planDocRef(){
   return db.collection('dispatchPlans').doc(S.date||todayStr());
 }
@@ -573,7 +452,7 @@ function cloudPayload(){
   };
 }
 function cloudSaveDebounced(){
-  if(_cloudLoading || _switchingDate)return;
+  if(_cloudLoading)return;
   clearTimeout(_cloudSaveTimer);
   _cloudSaveTimer=setTimeout(cloudSaveNow,450);
 }
@@ -672,8 +551,8 @@ function subscribePlan(){
       });
       try{
         if(!snap.exists){
-          clearCurrentPlanData();
-          setSyncStatus('Sync: new empty date','');
+          setSyncStatus('Sync: empty doc · waiting','');
+          if((S.orders||[]).length)cloudSaveNow();
           updateSyncBadge();
           return;
         }
@@ -718,14 +597,147 @@ async function forceRefresh(){
       updateSyncBadge();
       alert('✓ Refreshed from cloud\nSnapshots: '+_syncStats.snapshots+'\nOrders: '+(S.orders||[]).length);
     }else{
-      clearCurrentPlanData();
-      setSyncStatus('Sync: new empty date','');
-      alert('No data found on server for date '+(S.date||todayStr())+'; this date is now empty.');
+      setSyncStatus('Sync: no data on server','');
+      alert('No data found on server for date '+(S.date||todayStr()));
     }
   }catch(e){
     console.error('[Sync] Force refresh error:',e);
     setSyncStatus('Sync: refresh failed','err');
     alert('Refresh failed: '+(e.message||e.code||'unknown'));
+  }
+}
+
+
+async function loadCurrentDateDoc(){
+  if(!window.db)return;
+  try{
+    setSyncStatus('Sync: loading date...','');
+    const snap=await planDocRef().get({source:'server'});
+    if(snap.exists){
+      applyRemoteData(snap.data());
+      setSyncStatus('Sync: date loaded ✓','ok');
+    }else{
+      S.orders=[];
+      S.nid=1;
+      _plan=null;
+      _lastAppliedJson='';
+      _lastRemoteVersion=0;
+      saveLocal();
+      renderTable();
+      clearPlanResults();
+      setSyncStatus('Sync: empty date ✓','ok');
+    }
+  }catch(e){
+    console.error('[Sync] loadCurrentDateDoc failed:',e);
+    setSyncStatus('Sync: date load failed','err');
+  }
+}
+async function switchViewDate(newDate){
+  if(!newDate || newDate===(S.date||todayStr()))return;
+  S.date=newDate;
+  S.orders=[];
+  S.nid=1;
+  _plan=null;
+  _lastAppliedJson='';
+  _lastRemoteVersion=0;
+  saveLocal();
+  const fd=document.getElementById('f-date'); if(fd)fd.value=S.date;
+  renderTable();
+  clearPlanResults();
+  if(_cloudUnsub){_cloudUnsub();_cloudUnsub=null;}
+  subscribePlan();
+  await loadCurrentDateDoc();
+}
+function getCurrentPlanDataForMove(){
+  return {
+    date:S.date||todayStr(),
+    depotIdx:S.depotIdx||0,
+    trafficTime:S.trafficTime||'08:00',
+    pickupMin:S.pickupMin||20,
+    departTime:S.departTime||'08:00',
+    apiKey:S.apiKey||'',
+    nid:S.nid||1,
+    orders:S.orders||[],
+    depots:DEPOTS.map(d=>({name:d.name,addr:d.addr||''})),
+    plan:cleanPlanForCloud(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+function askTargetDate(defaultDate){
+  const target=prompt('Target date (YYYY-MM-DD):', defaultDate || todayStr());
+  if(!target)return null;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(target)){
+    alert('Invalid date format. Please use YYYY-MM-DD.');
+    return null;
+  }
+  return target;
+}
+async function copyOrdersToDate(){
+  if(!S.orders.length){alert('No orders to copy.');return}
+  const fromDate=S.date||todayStr();
+  const target=askTargetDate(fromDate);
+  if(!target || target===fromDate){return}
+  if(!confirm(`Copy all current orders from ${fromDate} to ${target}?\n\n${fromDate} will keep the original orders.`))return;
+  try{
+    setSyncStatus('Sync: copying...','');
+    const targetRef=db.collection('dispatchPlans').doc(target);
+    const existing=await targetRef.get({source:'server'});
+    if(existing.exists){
+      const ok=confirm(`${target} already has data. Overwrite it with current orders?`);
+      if(!ok)return;
+    }
+    const payload=getCurrentPlanDataForMove();
+    payload.date=target;
+    payload.activeDate=target;
+    payload.plan=null; // copied orders should regenerate plan
+    await targetRef.set(payload,{merge:false});
+    setSyncStatus('Sync: copied ✓','ok');
+    alert(`Copied orders to ${target}. You can switch Date to view it.`);
+  }catch(e){
+    console.error('[Sync] copyOrdersToDate failed:',e);
+    setSyncStatus('Sync: copy failed','err');
+    alert('Copy failed: '+(e.message||e.code||'unknown'));
+  }
+}
+async function moveOrdersToDate(){
+  if(!S.orders.length){alert('No orders to move.');return}
+  const fromDate=S.date||todayStr();
+  const target=askTargetDate(fromDate);
+  if(!target || target===fromDate){return}
+  if(!confirm(`Move all current orders from ${fromDate} to ${target}?\n\nThis will clear ${fromDate} after moving.`))return;
+  try{
+    setSyncStatus('Sync: moving...','');
+    const fromRef=db.collection('dispatchPlans').doc(fromDate);
+    const targetRef=db.collection('dispatchPlans').doc(target);
+    const existing=await targetRef.get({source:'server'});
+    if(existing.exists){
+      const ok=confirm(`${target} already has data. Overwrite it with current orders?`);
+      if(!ok)return;
+    }
+    const payload=getCurrentPlanDataForMove();
+    payload.date=target;
+    payload.activeDate=target;
+    payload.plan=null; // moved orders should regenerate plan under new date
+    await targetRef.set(payload,{merge:false});
+    await fromRef.set({
+      date:fromDate,
+      orders:[],
+      plan:null,
+      nid:1,
+      depotIdx:S.depotIdx||0,
+      trafficTime:S.trafficTime||'08:00',
+      pickupMin:S.pickupMin||20,
+      departTime:S.departTime||'08:00',
+      depots:DEPOTS.map(d=>({name:d.name,addr:d.addr||''})),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:false});
+    await switchViewDate(target);
+    setSyncStatus('Sync: moved ✓','ok');
+    alert(`Moved orders to ${target}. ${fromDate} has been cleared.`);
+  }catch(e){
+    console.error('[Sync] moveOrdersToDate failed:',e);
+    setSyncStatus('Sync: move failed','err');
+    alert('Move failed: '+(e.message||e.code||'unknown'));
   }
 }
 
@@ -939,15 +951,6 @@ function renderTable(){
 }
 
 
-
-function validateOrderTimes(){
-  const missing=S.orders.filter(o=>!o.closeTime);
-  if(missing.length){
-    return confirm(`${missing.length} orders have no Close Time. Latest Call and Remaining Time will show no data for those orders. Continue?`);
-  }
-  return true;
-}
-
 function validateDepotAddress(){
   const depot=DEPOTS[S.depotIdx];
   if(!depot.addr){
@@ -960,7 +963,6 @@ function validateDepotAddress(){
 async function generate(){
   if(!S.orders.length){alert('Please add orders first');return}
   if(!validateDepotAddress())return;
-  if(!validateOrderTimes())return;
   const btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note');
   btn.disabled=true;btn.textContent='⏳ 规划Medium...';
   try{
@@ -981,18 +983,16 @@ async function generate(){
     S.orders.forEach((o,i)=>{
       const d=dm[i];
       const cl=t2m(o.closeTime);
-      const closeMs=dateTimeMs(S.date||todayStr(),o.closeTime);
       const transit=d.ok?d.transitMin:null;
       const dist=d.ok?d.distKm:null;
       const latestCall=cl!=null&&transit!=null?cl-transit-pickup:null;
-      const latestCallMs=closeMs!=null&&transit!=null?closeMs-(transit+pickup)*60000:null;
-      const item={...o,coord:null,transit,dist,closeMs,latestCall,latestCallMs,hasTraffic:d.ok?d.hasTraffic:false};
+      const item={...o,coord:null,transit,dist,latestCall,hasTraffic:d.ok?d.hasTraffic:false};
       if(o.mode==='Multi-stop')multi.push(item);else p2p.push(item);
     });
 
     const priW={High:0,Medium:1,Low:2};
     p2p.sort((a,b)=>{
-      const la=a.latestCallMs??(a.latestCall??9999),lb=b.latestCallMs??(b.latestCall??9999);
+      const la=a.latestCall??9999,lb=b.latestCall??9999;
       if(la!==lb)return la-lb;
       return(priW[a.priority]??1)-(priW[b.priority]??1);
     });
@@ -1005,7 +1005,7 @@ async function generate(){
       routeResult=optimizeRoute(multi,fm,t2m(S.departTime)||480);
     }else if(multi.length===1){
       const o=multi[0];const dep=t2m(S.departTime)||480;
-      routeResult=[{...o,trav:o.transit||30,arr:dep+(o.transit||30),st:dep+(o.transit||30),lv:dep+(o.transit||30)+(o.serviceMin||15),closeMs:o.closeMs||dateTimeMs(S.date||todayStr(),o.closeTime),latestCallMs:o.latestCallMs||null,status:'ok'}];
+      routeResult=[{...o,trav:o.transit||30,arr:dep+(o.transit||30),st:dep+(o.transit||30),lv:dep+(o.transit||30)+(o.serviceMin||15),status:'ok'}];
     }
 
     _plan={p2p,route:routeResult,depotCoord:null,depotName:depot.name};
@@ -1073,7 +1073,7 @@ async function loadMapAsync(depotAddr){
           <br><span style="color:#636358">${o.address||'—'}</span>
           ${o.dist!=null?'<br>🚗 '+o.dist+'km · '+o.transit+'分'+(o.hasTraffic?' (Traffic Included)':''):''}
           ${o.closeTime?'<br>🕐 Close '+o.closeTime:''}
-          ${o.latestCallMs!=null?'<br>📞 <strong>Latest call '+msToClock(o.latestCallMs)+'</strong>':''}
+          ${o.latestCall!=null?'<br>📞 <strong>Latest call '+m2t(o.latestCall)+'</strong>':''}
         </div>`
       });
       mk.addListener('click',()=>iw.open(_map,mk));
@@ -1160,29 +1160,28 @@ function renderP2P(){
   const p2p=_plan.p2p;
   if(!p2p.length){lbl.style.display='none';list.innerHTML='';alert_el.innerHTML='';return}
   lbl.style.display='block';
-  const now=Date.now();
+  const now=planBaseMin();
   const pickup=S.pickupMin||20;
   const futurePlan=!isTodayPlan();
 
   // Alert banner
   const most=p2p[0];
-  const mostRemain=most.latestCallMs!=null?minutesRemaining(most.latestCallMs):9999;
+  const mostRemain=most.latestCall!=null?most.latestCall-now:9999;
   if(mostRemain<0){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${msToClock(most.latestCallMs)}），please handle immediately!</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">⚠ <div><strong>${most.name}</strong> is past the planned latest call time（${m2t(most.latestCall)}），please handle immediately!</div></div>`;
   }else if(mostRemain<30){
-    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${msToClock(most.latestCallMs)}</strong> (remaining ${msRemainingText(most.latestCallMs)})</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-urgent">🔴 <div>Next urgent: <strong>${most.name}</strong> — Call before <strong>${m2t(most.latestCall)}</strong> (remaining ${mostRemain} minutes)</div></div>`;
   }else{
-    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${msToClock(most.latestCallMs)} (remaining ${msRemainingText(most.latestCallMs)}）</div></div>`;
+    alert_el.innerHTML=`<div class="alert-banner alert-ok">✓ <div>Nearest order: <strong>${most.name}</strong> — ${m2t(most.latestCall)} (remaining ${Math.floor(mostRemain/60)}h${mostRemain%60}m）</div></div>`;
   }
 
   list.innerHTML=p2p.map((o,i)=>{
-    const lc=o.latestCallMs??null;
-    const remain=lc!=null?minutesRemaining(lc):999999;
+    const lc=o.latestCall;
+    const remain=lc!=null?lc-now:9999;
     const urg=remain<0?'missed':remain<30?'urgent':remain<90?'soon':'safe';
     const urgLabel={missed:'Overdue',urgent:'Urgent',soon:'Soon',safe:'Safe'}[urg];
     const pCls='p-'+urg;
-    const totalWindow=o.closeMs?Math.max(1,Math.round((o.closeMs-Date.now())/60000)):Math.max(1,remain+1);
-    const barPct=lc!=null?Math.max(0,Math.min(100,remain/(totalWindow+1)*100)):100;
+    const barPct=lc!=null?Math.max(0,Math.min(100,remain/(t2m(o.closeTime)-now+1)*100)):100;
     const barColor=urg==='safe'?'var(--ok)':urg==='soon'?'var(--warn)':'var(--err)';
     return`<div class="d-card ${urg}">
       <div class="d-num ${urg}">${i+1}</div>
@@ -1202,8 +1201,8 @@ function renderP2P(){
         </div>
         <div class="d-call-row">
           <span style="font-size:12px;color:var(--muted)">Latest Call</span>
-          <span class="d-call ${urg}">${lc!=null?msToClock(lc):'—'}</span>
-          <span class="d-remain">${lc!=null?msRemainingText(lc):'No close time'}</span>
+          <span class="d-call ${urg}">${lc!=null?m2t(lc):'—'}</span>
+          <span class="d-remain">${remain>0?'Remaining '+(remain>=60?Math.floor(remain/60)+'h':'')+(remain%60)+'m':'Overdue'}</span>
           <div class="d-bar"><div class="d-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
         </div>
       </div>
@@ -1248,7 +1247,7 @@ function doExport(){
   const wb=XLSX.utils.book_new();
   if(_plan?.p2p?.length){
     const d=[['Dispatch Sequence','单号','Customer','Address','Distance(km)','Driving(min)','Traffic Included','Close','Lalamove Pickup(min)','Latest Call','Priority']];
-    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCallMs!=null?msToClock(o.latestCallMs):'',o.priority,o.status||'Pending']));
+    _plan.p2p.forEach((o,i)=>d.push([i+1,o.orderNo,o.name,o.address,o.dist,o.transit,o.hasTraffic?'Yes':'No',o.closeTime,S.pickupMin,o.latestCall!=null?m2t(o.latestCall):'',o.priority,o.status||'Pending']));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Point-to-Point');
   }
   if(_plan?.route?.length){
