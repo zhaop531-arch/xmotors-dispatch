@@ -252,7 +252,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v4 · Mobile + Status v4 · Mobile + Status</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v5 · Plan Live Sync</div>
 </div>
 
 <!-- Settings -->
@@ -379,7 +379,7 @@ async function cloudSaveNow(){
     _cloudSaving=true;
     setSyncStatus('Cloud sync: saving','');
     await planDocRef().set(cloudPayload(),{merge:true});
-    setSyncStatus('Cloud sync: saved','ok');
+    setSyncStatus(_plan?'Cloud sync: plan saved':'Cloud sync: saved','ok');
   }catch(e){
     console.error(e);
     setSyncStatus('Cloud sync: error','err');
@@ -396,7 +396,7 @@ function applyRemoteData(data){
   S.departTime=data.departTime||S.departTime||'08:00';
   S.nid=data.nid||S.nid||1;
   S.orders=Array.isArray(data.orders)?data.orders:[];
-  _plan=data.plan||null;
+  _plan=hasRemotePlan(data)?data.plan:null;
   saveLocal();
   const fd=document.getElementById('f-date'); if(fd)fd.value=S.date||todayStr();
   const ft=document.getElementById('f-traffic'); if(ft)ft.value=S.trafficTime||'08:00';
@@ -405,7 +405,7 @@ function applyRemoteData(data){
   const siDepart=document.getElementById('si-depart'); if(siDepart)siDepart.value=S.departTime||'08:00';
   renderTable();
   updateApiDot();
-  if(_plan){renderResults();}
+  if(_plan){renderResults();}else{clearPlanResults();}
   _cloudLoading=false;
 }
 function subscribePlan(){
@@ -551,6 +551,14 @@ function openNav(addr){
   if(!addr){alert('No address');return}
   window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(addr),'_blank');
 }
+
+function getPlannedIndex(orderId){
+  if(!_plan)return null;
+  const p=[...(_plan.p2p||[]),...(_plan.route||[])];
+  const idx=p.findIndex(x=>String(x.id)===String(orderId));
+  return idx>=0?idx+1:null;
+}
+
 function renderMobileOrders(){
   const el=document.getElementById('mobile-orders');
   if(!el)return;
@@ -558,13 +566,14 @@ function renderMobileOrders(){
   el.innerHTML=S.orders.map((o,i)=>{
     const st=o.status||'Pending';
     const mc=o.mode==='Multi-stop'||o.mode==='途径'?'m-multi':'m-p2p';
+    const planIdx=getPlannedIndex(o.id);
     return `<div class="mo-card">
       <div class="mo-top">
         <div>
           <div class="mo-title">${i+1}. ${o.name||'Unnamed customer'}</div>
           <div class="mo-sub">${o.orderNo||'No order number'}</div>
         </div>
-        <span class="st-pill ${statusClass(st)}">${st}</span>
+        ${planIdx?`<span class="badge">Plan #${planIdx}</span>`:""}<span class="st-pill ${statusClass(st)}">${st}</span>
       </div>
       <div class="mo-addr">📍 ${o.address||'No address'}</div>
       <div class="mo-grid">
@@ -675,7 +684,7 @@ async function generate(){
     note.textContent='✓ Plan generated';
     btn.disabled=false;btn.textContent='🔄 Generate Plan';
     renderResults();
-    cloudSaveNow();
+    await cloudSaveNow();
 
     // Phase 2: Geocoding for map（后台异步，不阻塞结果）
     note.textContent='✓ Plan generated · loading map markers...';
