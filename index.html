@@ -191,7 +191,17 @@ tbody tr:hover td{background:#fafaf8}
 <div class="hdr no-print">
   <span class="logo">X-Motors <span>Delivery Planning</span></span>
   <div class="hdr-fields">
-    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();subscribePlan();cloudSaveNow()"></div>
+    <div class="fi"><span>Date</span><input type="date" id="f-date" onchange="S.date=this.value;saveLocal();subscribePlan();
+
+setTimeout(function(){
+  const el=document.getElementById('sync-lbl');
+  if(el && el.textContent==='Cloud sync: connecting'){
+    el.textContent='Cloud sync: timeout/check rules';
+    el.style.color='var(--err)';
+    el.style.borderColor='#e8adad';
+  }
+},8000);
+cloudSaveNow()"></div>
     <div class="fi"><span>Traffic ETD</span><input type="time" id="f-traffic" onchange="S.trafficTime=this.value;save()" title="Used by Google Maps to estimate driving time for future plans"></div>
     <div class="fi"><span>Dispatch Warehouse</span>
       <select id="f-depot" onchange="S.depotIdx=+this.value;save()">
@@ -252,7 +262,7 @@ tbody tr:hover td{background:#fafaf8}
 <div class="dispatch-list" id="p2p-list"></div>
 <div id="route-el"></div>
 
-<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v5 · Plan Live Sync</div>
+<div class="no-print" style="text-align:center;color:var(--hint);font-size:11px;margin:18px 0">X-Motors Dispatch Planner · Firebase Sync Version v6 · Sync Fix</div>
 </div>
 
 <!-- Settings -->
@@ -387,6 +397,20 @@ async function cloudSaveNow(){
     _cloudSaving=false;
   }
 }
+
+function hasRemotePlan(data){
+  return data && data.plan && (
+    (Array.isArray(data.plan.p2p) && data.plan.p2p.length > 0) ||
+    (Array.isArray(data.plan.route) && data.plan.route.length > 0)
+  );
+}
+function clearPlanResults(){
+  const p2p=document.getElementById('p2p-list'); if(p2p)p2p.innerHTML='';
+  const route=document.getElementById('route-el'); if(route)route.innerHTML='';
+  const alertEl=document.getElementById('alert-el'); if(alertEl)alertEl.innerHTML='';
+  const lbl=document.getElementById('p2p-lbl'); if(lbl)lbl.style.display='none';
+}
+
 function applyRemoteData(data){
   if(!data)return;
   _cloudLoading=true;
@@ -413,13 +437,18 @@ function subscribePlan(){
     if(_cloudUnsub)_cloudUnsub();
     setSyncStatus('Cloud sync: connecting','');
     _cloudUnsub=planDocRef().onSnapshot((snap)=>{
-      if(!snap.exists){
-        setSyncStatus('Cloud sync: new plan','');
-        if((S.orders||[]).length)cloudSaveNow();
-        return;
+      try{
+        if(!snap.exists){
+          setSyncStatus('Cloud sync: new plan','');
+          if((S.orders||[]).length)cloudSaveNow();
+          return;
+        }
+        applyRemoteData(snap.data());
+        setSyncStatus('Cloud sync: live','ok');
+      }catch(renderErr){
+        console.error('Cloud snapshot render error:', renderErr);
+        setSyncStatus('Cloud sync: render error','err');
       }
-      applyRemoteData(snap.data());
-      setSyncStatus('Cloud sync: live','ok');
     },(err)=>{
       console.error(err);
       setSyncStatus('Cloud sync: permission/error','err'); alert('Firebase permission/error. Please check Firestore Rules or browser console.');
