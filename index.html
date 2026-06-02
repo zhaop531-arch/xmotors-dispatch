@@ -364,6 +364,154 @@ async function importSheetOrdersToLibrary(){if(!S.sheetApiUrl){alert('Please set
 function askDate(){let d=prompt('Target date (YYYY-MM-DD):',S.date||today());return d&&/^\d{4}-\d{2}-\d{2}$/.test(d)?d:null}function copyOrdersToDate(){let d=askDate();if(!d)return;localStorage.setItem(dayKey(d),JSON.stringify({orders:S.orders.map(o=>({...o,id:uid()})),nid:S.nid,plan:null}));alert('Orders copied locally. Switch date to view them.')}function moveOrdersToDate(){let d=askDate();if(!d)return;localStorage.setItem(dayKey(d),JSON.stringify({orders:S.orders,nid:S.nid,plan:null}));S.orders=[];plan=null;save();renderAll();alert('Orders moved locally.')}
 function setSync(t,type=''){let el=document.getElementById('sync-label');el.textContent=t;el.style.color=type==='ok'?'var(--ok)':type==='err'?'var(--err)':'var(--muted)'}function cloudDoc(){return firebase.firestore().collection('dispatchPlans').doc(S.date||today())}function cloudPayload(){return {date:S.date,operator:S.operator,trafficTime:S.trafficTime,depotIdx:S.depotIdx,pickupMin:S.pickupMin,departTime:S.departTime,apiKey:S.apiKey,sheetApiUrl:S.sheetApiUrl,nid:S.nid,orders:S.orders,depots:S.depots,plan,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}}function scheduleCloudSave(){if(!cloudReady||loadingCloud)return;clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSaveNow(),700)}async function cloudSaveNow(){if(!cloudReady||loadingCloud)return;await cloudDoc().set(cloudPayload(),{merge:false});setSync('Cloud sync: saved','ok')}async function forceRefresh(){if(!cloudReady){setSync('Cloud sync: offline','err');return}let snap=await cloudDoc().get({source:'server'});if(snap.exists){applyCloud(snap.data());setSync('Cloud sync: refreshed','ok')}else setSync('Cloud sync: no data')}function applyCloud(d){loadingCloud=true;Object.assign(S,{date:d.date||S.date,operator:d.operator||S.operator,trafficTime:d.trafficTime||S.trafficTime,depotIdx:d.depotIdx??S.depotIdx,pickupMin:d.pickupMin||S.pickupMin,departTime:d.departTime||S.departTime,apiKey:d.apiKey||S.apiKey,sheetApiUrl:d.sheetApiUrl||S.sheetApiUrl,nid:d.nid||S.nid,orders:d.orders||[],depots:d.depots||S.depots});plan=d.plan||null;saveLocal();renderAll();loadingCloud=false}function subscribeCloud(){if(cloudUnsub){cloudUnsub();cloudUnsub=null}if(!cloudReady)return;setSync('Cloud sync: connecting...');cloudUnsub=cloudDoc().onSnapshot(s=>{if(s.exists&&!s.metadata?.hasPendingWrites){applyCloud(s.data());setSync('Cloud sync: live','ok')}else if(!s.exists)setSync('Cloud sync: empty')},e=>{console.warn(e);setSync('Cloud sync: error','err')})}function loadScript(src){return new Promise((res,rej)=>{let s=document.createElement('script');s.src=src;s.async=false;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}async function initCloud(){try{await loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');await loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js');firebase.initializeApp(FIREBASE_CONFIG);cloudReady=true;subscribeCloud()}catch(e){console.warn('Firebase unavailable',e);setSync('Cloud sync: offline')}}
 loadLocal();renderAll();updateClock();setInterval(updateClock,30000);initCloud();
+function addDays(dateStr, days) {
+  const d = new Date((dateStr || today()) + 'T00:00:00');
+  d.setDate(d.getDate() + Number(days || 0));
+  return d.toISOString().slice(0, 10);
+}
+
+function toYmdFromAny(v) {
+  if (!v) return '';
+
+  if (typeof v === 'string') {
+    const s = v.trim();
+
+    let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
+
+    m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (m) return `${m[3]}-${String(m[2]).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+
+    const d = new Date(s);
+    if (!isNaN(d)) return d.toISOString().slice(0, 10);
+
+    return '';
+  }
+
+  const d = new Date(v);
+  if (!isNaN(d)) return d.toISOString().slice(0, 10);
+  return '';
+}
+
+function normalizeSheetOrder(raw) {
+  raw = raw || {};
+
+  const g = (...names) => {
+    for (const n of names) {
+      if (raw[n] !== undefined && raw[n] !== null && String(raw[n]).trim() !== '') {
+        return String(raw[n]).trim();
+      }
+    }
+    return '';
+  };
+
+  const address = g('address', 'Address');
+  const wantedBy = g('deliveryDate', 'Delivery Date', 'wantedBy', 'Wanted By', 'Wanted by');
+
+  return {
+    sourceId: g('sourceId', 'Source ID', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #', 'orderNo') || ('SHEET-' + Date.now()),
+    orderNo: g('orderNo', 'Order No.', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #'),
+    deliveryDate: toYmdFromAny(wantedBy || g('Date', 'date')),
+    workshopType: g('workshopType', 'Workshop Type'),
+    dealer: g('dealer', 'Dealer'),
+    salesperson: g('salesperson', 'Salesperson'),
+    customer: g('customer', 'Customer Name', 'Customer'),
+    name: g('customer', 'Customer Name', 'Customer'),
+    phone: g('phone', 'Customer Phone Number', 'Customer Phone', 'Phone'),
+    address: address,
+    mapsUrl: g('mapsUrl', 'Maps URL') || extractFirstUrlSafe(address),
+    items: g('items', 'Product(s)', 'Products', 'Item(s) Ordered and Qty'),
+    qty: g('qty', 'Qty', 'Quantity'),
+    payment: g('payment', 'Payment Method (COD, TOP 30/60 etc.)', 'Payment Method'),
+    notes: g('notes', 'Notes'),
+    closeTime: g('closeTime', 'Close Time') || '',
+    serviceMin: Number(g('serviceMin', 'Service Min')) || 15,
+    priority: g('priority', 'Priority') || 'Medium',
+    mode: normalizeMode(g('mode', 'Mode') || 'Point-to-Point'),
+    sheetStatus: g('sheetStatus', 'Status ← auto', 'Status'),
+    doNo: g('doNo', 'DO # ← auto', 'DO #')
+  };
+}
+
+async function importSheetOrdersToLibrary() {
+  if (!S.sheetApiUrl) {
+    alert('Please set Google Sheet Import API URL in Settings first.');
+    return;
+  }
+
+  if (!cloudReady) {
+    alert('Cloud is not ready. Please wait for Firebase sync.');
+    return;
+  }
+
+  const r = libraryRange();
+
+  if (!confirm(`Import Google Sheet orders into Order Library from ${r.start} to ${r.end}?`)) {
+    return;
+  }
+
+  try {
+    setSync('Sheet → Library: loading...');
+
+    const url = S.sheetApiUrl
+      + (S.sheetApiUrl.includes('?') ? '&' : '?')
+      + 'start=' + encodeURIComponent(r.start)
+      + '&end=' + encodeURIComponent(r.end);
+
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Apps Script returned HTTP ' + resp.status);
+
+    const data = await resp.json();
+    const rows = Array.isArray(data) ? data : (data.orders || []);
+
+    let imported = 0;
+    let updated = 0;
+    let invalid = 0;
+
+    for (const raw of rows) {
+      const o = normalizeSheetOrder(raw);
+
+      if (!o.deliveryDate || o.deliveryDate < r.start || o.deliveryDate > r.end) {
+        invalid++;
+        continue;
+      }
+
+      const docId = libraryDocId(o);
+      const ref = orderLibraryRef().doc(docId);
+      const snap = await ref.get({ source: 'server' });
+      const previous = snap.exists ? snap.data() : {};
+
+      await ref.set({
+        ...previous,
+        ...o,
+        docId,
+        sourceId: o.sourceId || docId,
+        libraryStatus: previous.libraryStatus || 'Imported',
+        importedAt: previous.importedAt || firebase.firestore.FieldValue.serverTimestamp(),
+        lastImportedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: false });
+
+      snap.exists ? updated++ : imported++;
+    }
+
+    await loadOrderLibrary();
+
+    setSync('Sheet → Library: done', 'ok');
+
+    alert(
+      `Import to Library completed (${r.start} to ${r.end})\n` +
+      `New: ${imported}\n` +
+      `Updated: ${updated}\n` +
+      `Invalid: ${invalid}\n\n` +
+      `Next: select orders in Order Library and Add Selected to Date.`
+    );
+
+  } catch (e) {
+    console.error(e);
+    setSync('Sheet → Library: failed', 'err');
+    alert('Import to library failed: ' + (e.message || e));
+  }
+}
 </script>
 </body>
 </html>
