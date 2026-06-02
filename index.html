@@ -512,6 +512,181 @@ async function importSheetOrdersToLibrary() {
     alert('Import to library failed: ' + (e.message || e));
   }
 }
+function renderOrders(){
+  document.getElementById('order-count').textContent = S.orders.length + ' orders';
+
+  let body = document.getElementById('orders-body');
+  let mob = document.getElementById('mobile-orders');
+
+  if(!S.orders.length){
+    body.innerHTML = '<tr><td colspan="15" class="empty">No orders yet - add or import orders.</td></tr>';
+    mob.innerHTML = '<div class="empty">No orders yet - add or import orders.</div>';
+    return;
+  }
+
+  body.innerHTML = S.orders.map((o,i)=>`
+    <tr class="status-${statusKey(o.status||'Pending')}">
+      <td>${i+1}</td>
+
+      <td>
+        <input class="ci" value="${attr(o.orderNo||'')}" 
+        onchange="setOrder(${o.id},'orderNo',this.value)">
+      </td>
+
+      <td>
+        <input class="ci" value="${attr(o.name||'')}" 
+        onchange="setOrder(${o.id},'name',this.value)">
+      </td>
+
+      <td>
+        <input class="ci" value="${attr(o.phone||'')}" 
+        onchange="setOrder(${o.id},'phone',this.value)">
+      </td>
+
+      <td>
+        <textarea class="ci" style="min-width:220px;min-height:44px"
+        onchange="setOrder(${o.id},'address',this.value)">${esc(o.address||'')}</textarea>
+        ${getMapsUrlSafe(o) ? `<br><button onclick="openOrderNavSafe(${o.id})">Open Link</button>` : ''}
+      </td>
+
+      <td>
+        <textarea class="ci" style="min-width:180px;min-height:44px"
+        onchange="setOrder(${o.id},'items',this.value)">${esc(o.items||'')}</textarea>
+      </td>
+
+      <td>
+        <input class="ci" value="${attr(o.qty||'')}" 
+        onchange="setOrder(${o.id},'qty',this.value)">
+      </td>
+
+      <td>
+        <input class="ci" value="${attr(o.payment||'')}" 
+        onchange="setOrder(${o.id},'payment',this.value)">
+      </td>
+
+      <td>
+        <input class="ci" type="time" value="${attr(o.closeTime||'')}" 
+        onchange="setOrder(${o.id},'closeTime',this.value)">
+      </td>
+
+      <td>
+        <input class="ci" type="number" min="5" step="5" value="${attr(o.serviceMin||15)}" 
+        onchange="setOrder(${o.id},'serviceMin',this.value)">
+      </td>
+
+      <td>
+        <select class="ci" onchange="setOrder(${o.id},'priority',this.value)">
+          ${opts(PRIORITIES,o.priority)}
+        </select>
+      </td>
+
+      <td>
+        <select class="ci status-select status-${statusKey(o.status||'Pending')}" 
+        onchange="setOrder(${o.id},'status',this.value)">
+          ${opts(STATUSES,o.status||'Pending')}
+        </select>
+      </td>
+
+      <td>
+        <select class="ci" onchange="setOrder(${o.id},'mode',this.value)">
+          ${opts(MODES,o.mode)}
+        </select>
+      </td>
+
+      <td>
+        <textarea class="ci" style="min-width:150px;min-height:44px"
+        onchange="setOrder(${o.id},'notes',this.value)">${esc(o.notes||'')}</textarea>
+      </td>
+
+      <td>
+        <button class="danger" onclick="delOrder(${o.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+
+  mob.innerHTML = S.orders.map((o,i)=>`
+    <div class="order-card card status-${statusKey(o.status||'Pending')}">
+      <div class="order-top">
+        <div>
+          <div class="order-title">${i+1}. ${esc(o.name||'Unnamed customer')}</div>
+          <div class="muted">${esc(o.orderNo||'No order number')}</div>
+        </div>
+        ${statusPill(o.status||'Pending')}
+      </div>
+
+      <div class="grid2">
+        <label class="field">
+          <span>Order No.</span>
+          <input value="${attr(o.orderNo||'')}" onchange="setOrder(${o.id},'orderNo',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Customer</span>
+          <input value="${attr(o.name||'')}" onchange="setOrder(${o.id},'name',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Phone</span>
+          <input value="${attr(o.phone||'')}" onchange="setOrder(${o.id},'phone',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Qty</span>
+          <input value="${attr(o.qty||'')}" onchange="setOrder(${o.id},'qty',this.value)">
+        </label>
+
+        <label class="field full">
+          <span>Address</span>
+          <textarea onchange="setOrder(${o.id},'address',this.value)">${esc(o.address||'')}</textarea>
+        </label>
+
+        <label class="field full">
+          <span>Items</span>
+          <textarea onchange="setOrder(${o.id},'items',this.value)">${esc(o.items||'')}</textarea>
+        </label>
+
+        <label class="field">
+          <span>Payment</span>
+          <input value="${attr(o.payment||'')}" onchange="setOrder(${o.id},'payment',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Close</span>
+          <input type="time" value="${attr(o.closeTime||'')}" onchange="setOrder(${o.id},'closeTime',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Service</span>
+          <input type="number" min="5" step="5" value="${attr(o.serviceMin||15)}" onchange="setOrder(${o.id},'serviceMin',this.value)">
+        </label>
+
+        <label class="field">
+          <span>Priority</span>
+          <select onchange="setOrder(${o.id},'priority',this.value)">${opts(PRIORITIES,o.priority)}</select>
+        </label>
+
+        <label class="field">
+          <span>Status</span>
+          <select class="status-select status-${statusKey(o.status||'Pending')}" onchange="setOrder(${o.id},'status',this.value)">
+            ${opts(STATUSES,o.status||'Pending')}
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Mode</span>
+          <select onchange="setOrder(${o.id},'mode',this.value)">${opts(MODES,o.mode)}</select>
+        </label>
+
+        <label class="field full">
+          <span>Notes</span>
+          <textarea onchange="setOrder(${o.id},'notes',this.value)">${esc(o.notes||'')}</textarea>
+        </label>
+      </div>
+
+      <button class="danger" onclick="delOrder(${o.id})">Delete</button>
+    </div>
+  `).join('');
+}
 </script>
 </body>
 </html>
