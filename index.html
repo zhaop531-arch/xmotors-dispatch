@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#f4f3ef;--card:#fff;--line:#deddd6;--text:#191917;--muted:#66645b;--hint:#9b998f;--accent:#191917;--ok:#0d6b52;--okbg:#dff2eb;--warn:#a76100;--warnbg:#faebd5;--err:#952828;--errbg:#fae8e8;--r:8px;--side:292px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:7px;min-height:36px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}button:hover{background:#f8f7f3}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--accent);border-color:var(--accent);color:#fff}.danger{color:var(--err);border-color:#e8adad}.sidebar{position:fixed;inset:0 auto 0 0;width:var(--side);background:var(--card);border-right:1px solid var(--line);padding:18px 16px;overflow:auto;z-index:30}.brand{font-size:20px;font-weight:800}.sub{font-size:12px;color:var(--muted);margin:2px 0 18px}.section{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);margin-bottom:8px}.field{display:block;margin-bottom:9px}.field span,.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--text);min-height:36px;padding:7px 9px}.field textarea{min-height:78px;resize:vertical}.nav,.side-actions{display:grid;gap:8px}.nav button,.side-actions button{width:100%;justify-content:flex-start}.nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--hint);margin-right:6px}.dot.ok{background:var(--ok)}.main{margin-left:var(--side);padding:16px 22px 30px;max-width:1260px}.topbar{position:sticky;top:0;z-index:20;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}.menu{display:none}.muted{color:var(--muted);font-size:12px}.view{display:none}.view.active{display:block}.view-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}.view-head h1{font-size:24px;margin:0;line-height:1.1}.view-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.box,.card,.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}.kpi{padding:12px}.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--hint);font-weight:800}.kpi .value{font-size:26px;font-weight:800;line-height:1.1;margin-top:5px}.kpi .small{font-size:11px;color:var(--muted);margin-top:3px}.kpi.ok{border-left:4px solid var(--ok)}.kpi.warn{border-left:4px solid var(--warn)}.kpi.err{border-left:4px solid var(--err)}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.toolbar>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.badge{display:inline-flex;align-items:center;border:1px solid var(--line);background:#f8f7f3;color:var(--muted);border-radius:999px;padding:2px 8px;font-size:11px}.table-wrap{overflow:auto}.orders{width:100%;border-collapse:collapse;font-size:13px}.orders th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--hint);text-align:left;background:#f8f7f3;border-bottom:1px solid var(--line);padding:8px}.orders td{border-bottom:1px solid var(--line);padding:7px 8px;vertical-align:middle}.ci{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:5px;color:var(--text)}.ci:focus{border-color:#c8c6bd;outline:none;background:#fff}.mobile-orders{display:none}.order-card{padding:12px;margin-bottom:10px}.order-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}.order-title{font-weight:800}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid2 .full{grid-column:1/-1}.empty{padding:22px;text-align:center;color:var(--hint);background:var(--card);border:1px dashed #c8c6bd;border-radius:var(--r)}.import{display:none;margin-bottom:12px;padding:12px}.import.open{display:block}.risk-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);background:#f8f7f3}.risk-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}.risk-item:last-child{border-bottom:none}.tag{font-size:10px;font-weight:800;border-radius:999px;padding:3px 8px;height:max-content}.tag.err{background:var(--errbg);color:var(--err)}.tag.warn{background:var(--warnbg);color:var(--warn)}.tag.info{background:#f0efea;color:var(--muted)}.run{padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.alert{border-radius:var(--r);padding:12px 14px;margin-bottom:12px;border:1px solid var(--line)}.alert.ok{background:var(--okbg);border-color:#a0d8c0;color:var(--ok)}.alert.err{background:var(--errbg);border-color:#e8adad;color:var(--err)}.list{display:grid;gap:10px}.dispatch-card{display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;padding:13px 14px}.dispatch-card.urgent{border-left:4px solid var(--err)}.dispatch-card.soon{border-left:4px solid var(--warn)}.dispatch-card.safe{border-left:4px solid var(--ok)}.dispatch-card.done{opacity:.7}.rank{width:34px;height:34px;border-radius:50%;background:#f0efea;display:flex;align-items:center;justify-content:center;font-weight:800}.rank.urgent{background:var(--err);color:#fff}.rank.soon{background:var(--warn);color:#fff}.rank.safe{background:var(--ok);color:#fff}.line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.name{font-weight:800}.addr{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}.stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:var(--muted)}.stats strong{color:var(--text)}.progress{height:6px;background:#efeee9;border-radius:999px;overflow:hidden;margin-top:8px}.progress>span{display:block;height:100%;background:var(--ok)}.route-tools{padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.route-section{overflow:hidden;margin-bottom:12px}.route-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#f8f7f3;flex-wrap:wrap}.route-item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}.route-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;background:var(--ok)}.route-num.warn{background:var(--warn)}.route-num.late{background:var(--err)}#map-wrap{height:420px;overflow:hidden;margin-bottom:12px}#map{width:100%;height:100%;background:#ecebe5}.map-placeholder{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:20px}.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:80;align-items:center;justify-content:center;padding:16px}.modal-bg.open{display:flex}.modal{background:#fff;border-radius:10px;width:min(520px,100%);padding:20px}.modal h2{font-size:18px;margin:0 0 14px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:35}.mask.open{display:block}@media(max-width:900px){.sidebar{left:-88vw;width:min(86vw,340px);box-shadow:12px 0 32px rgba(0,0,0,.24);transition:left .2s ease;border-radius:0 14px 14px 0;z-index:40}.sidebar.open{left:0}.main{margin-left:0;padding:12px 12px 78px}.topbar{margin:-12px -12px 14px;border-radius:0;border-width:0 0 1px}.menu{display:inline-flex;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:999px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.view-head{align-items:flex-start}.table-wrap{display:none}.mobile-orders{display:block}.toolbar>div:last-child{display:grid;grid-template-columns:1fr 1fr;width:100%}.toolbar button{width:100%}.run{display:block}.run button{width:100%;margin-bottom:8px}.dispatch-card{grid-template-columns:34px minmax(0,1fr);padding:12px}.addr{white-space:normal}.route-tools{display:block}.route-tools button{width:100%;margin-top:8px}#map-wrap{height:310px}.modal-actions{display:grid;grid-template-columns:1fr 1fr}}@media(max-width:480px){.grid2,.toolbar>div:last-child{grid-template-columns:1fr}.dispatch-card{grid-template-columns:1fr}.rank{display:none}}
-.status-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:11px;font-weight:800;white-space:nowrap}.status-pending{background:#f0efea;color:var(--muted)}.status-preparing{background:var(--warnbg);border-color:#e4bd82;color:var(--warn)}.status-called{background:#e8f0fe;border-color:#b6c8f6;color:#1a56db}.status-picked{background:#e7f0ff;border-color:#b6c8f6;color:#164ea6}.status-delivered{background:var(--okbg);border-color:#a0d8c0;color:var(--ok)}.status-failed{background:var(--errbg);border-color:#e8adad;color:var(--err)}.status-select{border-width:2px;font-weight:800}.orders tr.status-delivered td{background:#f7fbf8}.orders tr.status-failed td{background:#fff8f8}.order-card.status-delivered{border-left:5px solid var(--ok)}.order-card.status-failed{border-left:5px solid var(--err)}.order-card.status-preparing,.order-card.status-called,.order-card.status-picked{border-left:5px solid var(--warn)}.planning-shell{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.8fr);gap:12px;align-items:stretch}.route-summary{padding:12px;margin-bottom:12px}.route-summary h3{font-size:14px;margin:0 0 10px}.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.summary-cell{border:1px solid var(--line);border-radius:7px;padding:9px;background:#f8f7f3}.summary-cell b{display:block;font-size:18px}.summary-cell span{display:block;color:var(--muted);font-size:11px}.plan-list{display:grid;gap:8px}.plan-stop{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}.plan-stop:last-child{border-bottom:none}.plan-stop.done{opacity:.65}.plan-stop-main{min-width:0}.plan-stop-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plan-stop-main .muted{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plan-time{text-align:right;font-size:12px;color:var(--muted);white-space:nowrap}.plan-time strong{color:var(--text)}.map-note{font-size:11px;color:var(--muted);margin-top:4px}#map iframe{width:100%;height:100%;border:0;display:block}@media(max-width:900px){.planning-shell{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.plan-stop{grid-template-columns:30px minmax(0,1fr);align-items:start}.plan-time{grid-column:2;text-align:left}}
+.status-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:11px;font-weight:800;white-space:nowrap}.status-pending{background:#f0efea;color:var(--muted)}.status-preparing{background:var(--warnbg);border-color:#e4bd82;color:var(--warn)}.status-called{background:#e8f0fe;border-color:#b6c8f6;color:#1a56db}.status-picked{background:#e7f0ff;border-color:#b6c8f6;color:#164ea6}.status-delivered{background:var(--okbg);border-color:#a0d8c0;color:var(--ok)}.status-backorder{background:#fff4d8;border-color:#e4bd82;color:#7a4a00}.status-failed{background:var(--errbg);border-color:#e8adad;color:var(--err)}.status-select{border-width:2px;font-weight:800}.orders tr.status-delivered td{background:#f7fbf8}.orders tr.status-backorder td{background:#fffaf0}.orders tr.status-failed td{background:#fff8f8}.order-card.status-delivered{border-left:5px solid var(--ok)}.order-card.status-backorder{border-left:5px solid var(--warn)}.order-card.status-failed{border-left:5px solid var(--err)}.order-card.status-preparing,.order-card.status-called,.order-card.status-picked{border-left:5px solid var(--warn)}.planning-shell{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.8fr);gap:12px;align-items:stretch}.route-summary{padding:12px;margin-bottom:12px}.route-summary h3{font-size:14px;margin:0 0 10px}.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.summary-cell{border:1px solid var(--line);border-radius:7px;padding:9px;background:#f8f7f3}.summary-cell b{display:block;font-size:18px}.summary-cell span{display:block;color:var(--muted);font-size:11px}.plan-list{display:grid;gap:8px}.plan-stop{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}.plan-stop:last-child{border-bottom:none}.plan-stop.done{opacity:.65}.plan-stop-main{min-width:0}.plan-stop-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plan-stop-main .muted{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plan-time{text-align:right;font-size:12px;color:var(--muted);white-space:nowrap}.plan-time strong{color:var(--text)}.map-note{font-size:11px;color:var(--muted);margin-top:4px}#map iframe{width:100%;height:100%;border:0;display:block}@media(max-width:900px){.planning-shell{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.plan-stop{grid-template-columns:30px minmax(0,1fr);align-items:start}.plan-time{grid-column:2;text-align:left}}
 
 /* v22 Order Library */
 .lib-added{opacity:.65;background:#f7fbf8}
@@ -68,13 +68,14 @@
 <div class="modal-bg" id="settings-modal" onclick="if(event.target===this)closeSettings()"><div class="modal"><h2>Settings</h2><label class="field"><span>Google Maps API Key</span><input type="password" id="set-api" placeholder="AIzaSy..."></label><label class="field"><span>Google Sheet Import API URL</span><input id="set-sheet-api" placeholder="https://script.google.com/macros/s/.../exec"></label><label class="field"><span>BCS HEAD OFFICE (HO) - Address</span><input id="set-depot-0"></label><label class="field"><span>BCS-1 Kelapa Gading - Address</span><input id="set-depot-1"></label><label class="field"><span>BCS-2 PIK 2 - Address</span><input id="set-depot-2"></label><label class="field"><span>Lalamove pickup lead time (minutes)</span><input type="number" min="5" step="5" id="set-pickup"></label><label class="field"><span>Drop-by departure time</span><input type="time" id="set-depart"></label><div class="modal-actions"><button onclick="closeSettings()">Cancel</button><button class="primary" onclick="saveSettings()">Save</button></div></div></div>
 <script>
 const FIREBASE_CONFIG={apiKey:"AIzaSyB2n1ANZYTbBInwR6Lev6GKxmKPPrhI2aM",authDomain:"deliver-management.firebaseapp.com",projectId:"deliver-management",storageBucket:"deliver-management.firebasestorage.app",messagingSenderId:"1003676507865",appId:"1:1003676507865:web:50a65ff995630ee75a28c8"};
-const DEPOTS=[{name:'BCS HEAD OFFICE (HO)',addr:'Jl. Boulevard Raya Blok QJ3 No.1, Kelapa Gading, Jakarta Utara'},{name:'BCS-1 Kelapa Gading',addr:'Jl. Boulevard Raya, Kelapa Gading, Jakarta Utara'},{name:'BCS-2 PIK 2',addr:'PIK 2, Tangerang, Banten'}],STATUSES=['Pending','Preparing','Called','Picked up','Delivered','Failed / Reschedule'],PRIORITIES=['High','Medium','Low'],MODES=['Point-to-Point','Drop-by'];
-const KEY='xmd_clean_v2';let S={apiKey:'',sheetApiUrl:'',date:today(),operator:'',trafficTime:'08:00',depotIdx:0,pickupMin:20,departTime:'08:00',orders:[],nid:1,depots:JSON.parse(JSON.stringify(DEPOTS))},plan=null,mapsPromise=null,cloudReady=false,cloudUnsub=null,saveTimer=null,loadingCloud=false;let LIB=[];
+const DEPOTS=[{name:'BCS HEAD OFFICE (HO)',addr:'Jl. Boulevard Raya Blok QJ3 No.1, Kelapa Gading, Jakarta Utara'},{name:'BCS-1 Kelapa Gading',addr:'Jl. Boulevard Raya, Kelapa Gading, Jakarta Utara'},{name:'BCS-2 PIK 2',addr:'PIK 2, Tangerang, Banten'}],STATUSES=['Pending','Preparing','Called','Picked up','Backorder','Delivered','Failed / Reschedule'],PRIORITIES=['High','Medium','Low'],MODES=['Point-to-Point','Drop-by'];
+const DEFAULT_SHEET_URL='https://docs.google.com/spreadsheets/d/1XEGOjWHazGqoO484yjmAWLADCF7y6er54lnU8MxOkCI/edit?gid=1003006931#gid=1003006931';
+const KEY='xmd_clean_v2';let S={apiKey:'',sheetApiUrl:DEFAULT_SHEET_URL,date:today(),operator:'',trafficTime:'08:00',depotIdx:0,pickupMin:20,departTime:'08:00',orders:[],nid:1,depots:JSON.parse(JSON.stringify(DEPOTS))},plan=null,mapsPromise=null,cloudReady=false,cloudUnsub=null,saveTimer=null,loadingCloud=false;let LIB=[];
 function today(){return new Date().toISOString().slice(0,10)}function t2m(t){if(!t)return null;let [h,m]=String(t).split(':').map(Number);return Number.isFinite(h)&&Number.isFinite(m)?h*60+m:null}function m2t(v){if(v==null||isNaN(v))return '-';v=Math.round(v)%1440;if(v<0)v+=1440;return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0')}function nowMin(){let d=new Date();return d.getHours()*60+d.getMinutes()}function baseMin(){return (S.date||today())===today()?nowMin():t2m(S.trafficTime)||480}function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}function attr(s){return esc(s).replace(/'/g,'&#39;')}function dayKey(d=S.date){return KEY+'_day_'+d}function uid(){return S.nid++}
-function loadLocal(){try{let settings=JSON.parse(localStorage.getItem(KEY)||'null'),legacy=JSON.parse(localStorage.getItem('xmd2')||'null');if(settings)Object.assign(S,settings);else if(legacy)Object.assign(S,legacy);let day=JSON.parse(localStorage.getItem(dayKey(S.date))||'null');if(day){S.orders=day.orders||[];S.nid=day.nid||S.nid;plan=day.plan||null}}catch(e){console.warn(e)}S.depots=S.depots&&S.depots.length?S.depots:JSON.parse(JSON.stringify(DEPOTS));S.orders=Array.isArray(S.orders)?S.orders:[];S.orders.forEach(o=>o.mode=normalizeMode(o.mode));if(plan)[...(plan.p2p||[]),...(plan.route||[])].forEach(o=>o.mode=normalizeMode(o.mode));S.nid=S.nid||Math.max(1,...S.orders.map(o=>Number(o.id)||0))+1}function saveLocal(){let settings={apiKey:S.apiKey,sheetApiUrl:S.sheetApiUrl,date:S.date,operator:S.operator,trafficTime:S.trafficTime,depotIdx:S.depotIdx,pickupMin:S.pickupMin,departTime:S.departTime,depots:S.depots};localStorage.setItem(KEY,JSON.stringify(settings));localStorage.setItem(dayKey(),JSON.stringify({orders:S.orders,nid:S.nid,plan}));localStorage.setItem('xmd2',JSON.stringify({...settings,orders:S.orders,nid:S.nid,plan}))}function save(){saveLocal();scheduleCloudSave()}
+function loadLocal(){try{let settings=JSON.parse(localStorage.getItem(KEY)||'null'),legacy=JSON.parse(localStorage.getItem('xmd2')||'null');if(settings)Object.assign(S,settings);else if(legacy)Object.assign(S,legacy);let day=JSON.parse(localStorage.getItem(dayKey(S.date))||'null');if(day){S.orders=day.orders||[];S.nid=day.nid||S.nid;plan=day.plan||null}}catch(e){console.warn(e)}if(!S.sheetApiUrl)S.sheetApiUrl=DEFAULT_SHEET_URL;S.depots=S.depots&&S.depots.length?S.depots:JSON.parse(JSON.stringify(DEPOTS));S.orders=Array.isArray(S.orders)?S.orders:[];S.orders.forEach(o=>o.mode=normalizeMode(o.mode));if(plan)[...(plan.p2p||[]),...(plan.route||[])].forEach(o=>o.mode=normalizeMode(o.mode));S.nid=S.nid||Math.max(1,...S.orders.map(o=>Number(o.id)||0))+1}function saveLocal(){let settings={apiKey:S.apiKey,sheetApiUrl:S.sheetApiUrl,date:S.date,operator:S.operator,trafficTime:S.trafficTime,depotIdx:S.depotIdx,pickupMin:S.pickupMin,departTime:S.departTime,depots:S.depots};localStorage.setItem(KEY,JSON.stringify(settings));localStorage.setItem(dayKey(),JSON.stringify({orders:S.orders,nid:S.nid,plan}));localStorage.setItem('xmd2',JSON.stringify({...settings,orders:S.orders,nid:S.nid,plan}))}function save(){saveLocal();scheduleCloudSave()}
 function syncControls(){document.getElementById('f-date').value=S.date||today();document.getElementById('f-operator').value=S.operator||'';document.getElementById('f-traffic').value=S.trafficTime||'08:00';document.getElementById('f-depot').innerHTML=S.depots.map((d,i)=>`<option value="${i}">${esc(d.name)}</option>`).join('');document.getElementById('f-depot').value=S.depotIdx||0;document.getElementById('topbar-sub').textContent=`${S.date} - ${S.depots[S.depotIdx]?.name||'Warehouse'}`;let dot=document.getElementById('api-dot'),label=document.getElementById('api-label');dot.className=S.apiKey?'dot ok':'dot';label.textContent=S.apiKey?'Maps API configured':'Maps API not configured'}function setSetting(k,v){S[k]=v;plan=null;save();renderAll()}function switchDate(d){saveLocal();S.date=d;let day=JSON.parse(localStorage.getItem(dayKey(d))||'null');S.orders=day?.orders||[];S.nid=day?.nid||1;plan=day?.plan||null;saveLocal();subscribeCloud();renderAll()}
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mask').classList.add('open')}function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mask').classList.remove('open')}function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));closeSidebar();scrollTo({top:0,behavior:'smooth'});if(name==='dispatch')renderDispatch()}function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}
-function addOrder(d={}){S.orders.push({id:d.id||uid(),orderNo:d.orderNo||'',name:d.name||'',phone:d.phone||'',address:d.address||'',mapsUrl:d.mapsUrl||'',items:d.items||'',qty:d.qty||'',payment:d.payment||'',notes:d.notes||'',sourceId:d.sourceId||'',closeTime:d.closeTime||'',serviceMin:Number(d.serviceMin)||15,priority:d.priority||'Medium',mode:normalizeMode(d.mode),status:d.status||'Pending',statusHistory:d.statusHistory||[]});plan=null;save();renderAll();showView('orders')}function delOrder(id){if(!confirm('Delete this order?'))return;S.orders=S.orders.filter(o=>String(o.id)!==String(id));plan=null;save();renderAll()}function setOrder(id,k,v){let o=S.orders.find(x=>String(x.id)===String(id));if(!o)return;let old=o.status||'Pending';o[k]=k==='serviceMin'?Number(v)||15:k==='mode'?normalizeMode(v):v;if(k==='status'&&old!==v){o.statusUpdatedAt=new Date().toISOString();o.statusUpdatedBy=S.operator||'Unknown';o.statusHistory=o.statusHistory||[];o.statusHistory.unshift({from:old,to:v,at:o.statusUpdatedAt,by:o.statusUpdatedBy});if(plan)[...(plan.p2p||[]),...(plan.route||[])].forEach(x=>{if(String(x.id)===String(id))x.status=v})}if(k!=='status')plan=null;save();renderAll();if(k==='status')maybePromptDeleteDelivered(o)}function opts(list,val){return list.map(x=>`<option value="${attr(x)}" ${x===val?'selected':''}>${esc(x)}</option>`).join('')}function statusKey(st){st=String(st||'Pending').toLowerCase();if(st.includes('deliver'))return'delivered';if(st.includes('fail')||st.includes('reschedule'))return'failed';if(st.includes('pick'))return'picked';if(st.includes('call'))return'called';if(st.includes('prepar'))return'preparing';return'pending'}
+function addOrder(d={}){S.orders.push({id:d.id||uid(),orderNo:d.orderNo||'',name:d.name||'',phone:d.phone||'',address:d.address||'',mapsUrl:d.mapsUrl||'',items:d.items||'',qty:d.qty||'',payment:d.payment||'',notes:d.notes||'',sourceId:d.sourceId||'',closeTime:d.closeTime||'',serviceMin:Number(d.serviceMin)||15,priority:d.priority||'Medium',mode:normalizeMode(d.mode),status:d.status||'Pending',statusHistory:d.statusHistory||[]});plan=null;save();renderAll();showView('orders')}function delOrder(id){if(!confirm('Delete this order?'))return;S.orders=S.orders.filter(o=>String(o.id)!==String(id));plan=null;save();renderAll()}function setOrder(id,k,v){let o=S.orders.find(x=>String(x.id)===String(id));if(!o)return;let old=o.status||'Pending';o[k]=k==='serviceMin'?Number(v)||15:k==='mode'?normalizeMode(v):v;if(k==='status'&&old!==v){o.statusUpdatedAt=new Date().toISOString();o.statusUpdatedBy=S.operator||'Unknown';o.statusHistory=o.statusHistory||[];o.statusHistory.unshift({from:old,to:v,at:o.statusUpdatedAt,by:o.statusUpdatedBy});if(plan)[...(plan.p2p||[]),...(plan.route||[])].forEach(x=>{if(String(x.id)===String(id))x.status=v})}if(k!=='status')plan=null;save();renderAll();syncOrderDatabaseFromDispatch(o);if(k==='status')maybePromptDeleteDelivered(o)}function opts(list,val){return list.map(x=>`<option value="${attr(x)}" ${x===val?'selected':''}>${esc(x)}</option>`).join('')}function statusKey(st){st=String(st||'Pending').toLowerCase();if(st.includes('back')||st==='bo')return'backorder';if(st.includes('deliver')||st.includes('complete'))return'delivered';if(st.includes('fail')||st.includes('reschedule')||st.includes('cancel'))return'failed';if(st.includes('pick'))return'picked';if(st.includes('call'))return'called';if(st.includes('prepar')||st.includes('ready'))return'preparing';return'pending'}
 function looksLikeUrl(v){return /^https?:\/\//i.test(String(v||'').trim()) || /^https?:\/\/maps\.app\.goo\.gl/i.test(String(v||'').trim())}
 function extractFirstUrl(v){let m=String(v||'').match(/https?:\/\/\S+/i);return m?m[0].replace(/[)\],.]+$/,''):''}
 function cleanAddressForMaps(v){
@@ -151,7 +152,7 @@ function openOrderNavSafe(id){
 function statusPill(st){return`<span class="status-pill status-${statusKey(st)}">${esc(st||'Pending')}</span>`}function latestOrder(id){return S.orders.find(x=>String(x.id)===String(id))}function currentStatus(o){return latestOrder(o.id)?.status||o.status||'Pending'}function normalizeMode(m){m=String(m||'Point-to-Point');return /drop|multi|stop/i.test(m)?'Drop-by':'Point-to-Point'}function isDropBy(o){return normalizeMode(o?.mode)==='Drop-by'}
 function renderOrders(){document.getElementById('order-count').textContent=S.orders.length+' orders';let body=document.getElementById('orders-body'),mob=document.getElementById('mobile-orders');if(!S.orders.length){body.innerHTML='<tr><td colspan="10" class="empty">No orders yet - add or import orders.</td></tr>';mob.innerHTML='<div class="empty">No orders yet - add or import orders.</div>';return}body.innerHTML=S.orders.map((o,i)=>`<tr class="status-${statusKey(o.status||'Pending')}"><td>${i+1}</td><td><input class="ci" value="${attr(o.orderNo)}" onchange="setOrder(${o.id},'orderNo',this.value)"></td><td><input class="ci" value="${attr(o.name)}" onchange="setOrder(${o.id},'name',this.value)"></td><td><input class="ci" value="${attr(o.address)}" onchange="setOrder(${o.id},'address',this.value)"></td><td><input class="ci" type="time" value="${attr(o.closeTime)}" onchange="setOrder(${o.id},'closeTime',this.value)"></td><td><input class="ci" type="number" min="5" step="5" value="${attr(o.serviceMin||15)}" onchange="setOrder(${o.id},'serviceMin',this.value)"></td><td><select class="ci" onchange="setOrder(${o.id},'priority',this.value)">${opts(PRIORITIES,o.priority)}</select></td><td><select class="ci status-select status-${statusKey(o.status||'Pending')}" onchange="setOrder(${o.id},'status',this.value)">${opts(STATUSES,o.status||'Pending')}</select></td><td><select class="ci" onchange="setOrder(${o.id},'mode',this.value)">${opts(MODES,o.mode)}</select></td><td><button class="danger" onclick="delOrder(${o.id})">Delete</button></td></tr>`).join('');mob.innerHTML=S.orders.map((o,i)=>`<div class="order-card card status-${statusKey(o.status||'Pending')}"><div class="order-top"><div><div class="order-title">${i+1}. ${esc(o.name||'Unnamed customer')}</div><div class="muted">${esc(o.orderNo||'No order number')}</div></div>${statusPill(o.status||'Pending')}</div><div class="grid2"><label class="field"><span>Order No.</span><input value="${attr(o.orderNo)}" onchange="setOrder(${o.id},'orderNo',this.value)"></label><label class="field"><span>Customer</span><input value="${attr(o.name)}" onchange="setOrder(${o.id},'name',this.value)"></label><label class="field full"><span>Address</span><textarea onchange="setOrder(${o.id},'address',this.value)">${esc(o.address)}</textarea></label><label class="field"><span>Close</span><input type="time" value="${attr(o.closeTime)}" onchange="setOrder(${o.id},'closeTime',this.value)"></label><label class="field"><span>Service</span><input type="number" min="5" step="5" value="${attr(o.serviceMin||15)}" onchange="setOrder(${o.id},'serviceMin',this.value)"></label><label class="field"><span>Priority</span><select onchange="setOrder(${o.id},'priority',this.value)">${opts(PRIORITIES,o.priority)}</select></label><label class="field"><span>Status</span><select class="status-select status-${statusKey(o.status||'Pending')}" onchange="setOrder(${o.id},'status',this.value)">${opts(STATUSES,o.status||'Pending')}</select></label><label class="field full"><span>Mode</span><select onchange="setOrder(${o.id},'mode',this.value)">${opts(MODES,o.mode)}</select></label></div><button class="danger" onclick="delOrder(${o.id})">Delete</button></div>`).join('')}
 function toggleImport(){document.getElementById('import-box').classList.toggle('open')}function parseCsv(line){let out=[],cur='',q=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===','&&!q){out.push(cur.trim());cur=''}else cur+=c}out.push(cur.trim());return out}function importCsv(){let text=document.getElementById('csv-input').value.trim(),n=0;if(!text)return;text.split(/\r?\n/).forEach((line,i)=>{let p=parseCsv(line);if(i===0&&/order|customer|address/i.test(p.join(',')))return;if(p.length<2)return;addOrder({orderNo:p[0],name:p[1],address:p[2]||'',closeTime:p[3]||'',priority:PRIORITIES.includes(p[4])?p[4]:'Medium',mode:normalizeMode(p[5])});n++});document.getElementById('csv-input').value='';document.getElementById('import-box').classList.remove('open');alert('Imported '+n+' rows')}
-function buildDashboard(){let total=S.orders.length,del=S.orders.filter(o=>o.status==='Delivered').length,fail=S.orders.filter(o=>o.status==='Failed / Reschedule').length,urgent=queue().filter(x=>x.urg==='urgent').length,pct=total?Math.round(del/total*100):0;document.getElementById('dashboard-kpis').innerHTML=`<div class="kpi"><div class="label">Total Orders</div><div class="value">${total}</div><div class="small">Current date</div></div><div class="kpi ok"><div class="label">Delivered</div><div class="value">${del}</div><div class="small">${pct}% completion</div></div><div class="kpi ${urgent?'warn':''}"><div class="label">Urgent</div><div class="value">${urgent}</div><div class="small">Needs action soon</div></div><div class="kpi ${fail?'err':''}"><div class="label">Failed</div><div class="value">${fail}</div><div class="small">Need review</div></div>`;renderRisks()}function renderRisks(){let risks=[];S.orders.forEach((o,i)=>{let title=o.name||o.orderNo||'Order '+(i+1);if(!o.address)risks.push(['ADDRESS','err',title,'Missing address.']);if(!o.closeTime)risks.push(['TIME','warn',title,'Missing close time.']);if(o.status==='Failed / Reschedule')risks.push(['FAILED','err',title,'Order marked as failed.'])});queue().forEach(q=>{if(q.urg==='urgent'&&q.remain!=null)risks.push([q.remain<0?'OVERDUE':'URGENT',q.remain<0?'err':'warn',q.name||q.orderNo,q.remain<0?'Latest call passed at '+m2t(q.latestCall):'Latest call '+m2t(q.latestCall)+' ('+q.remain+' min left)'])});document.getElementById('risk-list').innerHTML=`<div class="box"><div class="risk-head"><strong>Exceptions / Risk Orders</strong><span class="badge">${risks.length}</span></div>${risks.length?risks.slice(0,10).map(r=>`<div class="risk-item"><span class="tag ${r[1]}">${esc(r[0])}</span><div><strong>${esc(r[2])}</strong><div class="muted">${esc(r[3])}</div></div></div>`).join(''):'<div class="risk-item"><span class="tag info">OK</span><div><strong>No major risk detected</strong><div class="muted">Current orders look normal based on available data.</div></div></div>'}</div>`}
+function buildDashboard(){let total=S.orders.length,del=S.orders.filter(o=>o.status==='Delivered').length,fail=S.orders.filter(o=>o.status==='Failed / Reschedule').length,back=S.orders.filter(hasBackorder).length,urgent=queue().filter(x=>x.urg==='urgent').length,pct=total?Math.round(del/total*100):0;document.getElementById('dashboard-kpis').innerHTML=`<div class="kpi"><div class="label">Total Orders</div><div class="value">${total}</div><div class="small">Current date</div></div><div class="kpi ok"><div class="label">Delivered</div><div class="value">${del}</div><div class="small">${pct}% completion</div></div><div class="kpi ${urgent||back?'warn':''}"><div class="label">Urgent / Backorder</div><div class="value">${urgent+back}</div><div class="small">Needs action soon</div></div><div class="kpi ${fail?'err':''}"><div class="label">Failed</div><div class="value">${fail}</div><div class="small">Need review</div></div>`;renderRisks()}function renderRisks(){let risks=[];S.orders.forEach((o,i)=>{let title=o.name||o.orderNo||'Order '+(i+1);if(!o.address)risks.push(['ADDRESS','err',title,'Missing address.']);if(!o.closeTime)risks.push(['TIME','warn',title,'Missing close time.']);if(hasBackorder(o))risks.push(['BACKORDER','warn',title,'Order marked or noted as backorder.']);if(o.status==='Failed / Reschedule')risks.push(['FAILED','err',title,'Order marked as failed.'])});queue().forEach(q=>{if(q.urg==='urgent'&&q.remain!=null)risks.push([q.remain<0?'OVERDUE':'URGENT',q.remain<0?'err':'warn',q.name||q.orderNo,q.remain<0?'Latest call passed at '+m2t(q.latestCall):'Latest call '+m2t(q.latestCall)+' ('+q.remain+' min left)'])});document.getElementById('risk-list').innerHTML=`<div class="box"><div class="risk-head"><strong>Exceptions / Risk Orders</strong><span class="badge">${risks.length}</span></div>${risks.length?risks.slice(0,10).map(r=>`<div class="risk-item"><span class="tag ${r[1]}">${esc(r[0])}</span><div><strong>${esc(r[2])}</strong><div class="muted">${esc(r[3])}</div></div></div>`).join(''):'<div class="risk-item"><span class="tag info">OK</span><div><strong>No major risk detected</strong><div class="muted">Current orders look normal based on available data.</div></div></div>'}</div>`}
 function loadMaps(key){if(window.google?.maps)return Promise.resolve();if(mapsPromise)return mapsPromise;mapsPromise=new Promise((res,rej)=>{window.__mapsReady=()=>res();let s=document.createElement('script');s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(key)+'&callback=__mapsReady';s.async=true;s.onerror=()=>rej(new Error('Google Maps script failed to load'));document.head.appendChild(s);setTimeout(()=>rej(new Error('Google Maps load timed out')),15000)});return mapsPromise}function planDate(){let [h,m]=String(S.trafficTime||'08:00').split(':').map(Number),d=new Date((S.date||today())+'T00:00:00');d.setHours(h||0,m||0,0,0);return d<new Date()?new Date():d}function dm(origin,dests){let svc=new google.maps.DistanceMatrixService();return new Promise((res,rej)=>{let timer=setTimeout(()=>rej(new Error('Distance Matrix timed out')),18000);svc.getDistanceMatrix({origins:[origin],destinations:dests,travelMode:google.maps.TravelMode.DRIVING,unitSystem:google.maps.UnitSystem.METRIC,drivingOptions:{departureTime:planDate()}},(r,s)=>{clearTimeout(timer);s==='OK'?res(r):rej(new Error('Distance Matrix failed: '+s))})})}async function distMatrix(origin,dests){let out=Array.from({length:dests.length},()=>({ok:false})),idx=dests.map((d,i)=>({d:(d||'').trim(),i})).filter(x=>x.d),chunkSize=25;for(let start=0;start<idx.length;start+=chunkSize){let chunk=idx.slice(start,start+chunkSize),resp=await dm(origin,chunk.map(x=>x.d)),row=resp.rows?.[0]?.elements||[];row.forEach((el,j)=>{let i=chunk[j].i;if(!el||el.status!=='OK'){out[i]={ok:false};return}let dur=el.duration_in_traffic?.value||el.duration?.value||1800;out[i]={ok:true,distKm:+(el.distance.value/1000).toFixed(1),transitMin:Math.round(dur/60),hasTraffic:!!el.duration_in_traffic}});if(start+chunkSize<idx.length)await new Promise(r=>setTimeout(r,250))}return out}function fallbackMatrix(n){return Array.from({length:n},(_,r)=>Array.from({length:n},(_,c)=>r===c?0:30+Math.abs(r-c)*5))}async function fullMatrix(locs){let m=fallbackMatrix(locs.length);for(let i=0;i<locs.length;i++){let row=await distMatrix(locs[i],locs);row.forEach((x,j)=>{if(x.ok)m[i][j]=x.transitMin})}return m}function optimize(orders,matrix,depart){let seen=Array(orders.length).fill(false),seq=[],cur=0,time=depart;for(let step=0;step<orders.length;step++){let best=-1,score=1e9;for(let i=0;i<orders.length;i++){if(seen[i])continue;let trav=matrix[cur]?.[i+1]??30,arr=time+trav,cl=t2m(orders[i].closeTime),pri={High:0,Medium:8,Low:16}[orders[i].priority]??8,late=cl&&arr>cl?(arr-cl)*100:0,s=trav+late+pri;if(s<score){score=s;best=i}}if(best<0)break;seen[best]=true;let trav=matrix[cur]?.[best+1]??30,arr=time+trav,lv=arr+(Number(orders[best].serviceMin)||15),cl=t2m(orders[best].closeTime),routeStatus=cl&&arr>cl?'late':cl&&lv>cl?'warn':'ok';seq.push({...orders[best],trav,arr,lv,routeStatus});time=lv;cur=best+1}return seq}
 async function generatePlan(){if(!S.orders.length){alert('Please add orders first');return}let btn=document.getElementById('gen-btn'),note=document.getElementById('gen-note'),depot=S.depots[S.depotIdx]||S.depots[0],origin=depot.addr||depot.name,pickup=S.pickupMin||20,maps=false,mat=null;btn.disabled=true;btn.textContent='Generating...';note.textContent='Preparing dispatch plan...';try{if(S.apiKey){try{note.textContent='Loading Google Maps traffic data...';await loadMaps(S.apiKey);maps=true;note.textContent='Calculating driving time...';mat=await distMatrix(origin,S.orders.map(o=>cleanAddressForMaps(o.address)||o.name))}catch(e){maps=false;console.warn(e);note.textContent='Maps unavailable. Using estimated driving time.'}}if(!mat)mat=S.orders.map(o=>({ok:true,transitMin:Math.max(20,Number(o.serviceMin)||30),fallback:true}));let p2p=[],multi=[];S.orders.forEach((o,i)=>{let d=mat[i]||{},cl=t2m(o.closeTime),transit=d.ok?Number(d.transitMin||30):30,item={...o,mode:normalizeMode(o.mode),transit,dist:d.distKm??null,latestCall:cl!=null?cl-transit-pickup:null,hasTraffic:!!d.hasTraffic,fallback:!!d.fallback};(isDropBy(o)?multi:p2p).push(item)});let pw={High:0,Medium:1,Low:2};p2p.sort((a,b)=>(a.latestCall??9999)-(b.latestCall??9999)||(pw[a.priority]??1)-(pw[b.priority]??1));let route=[];if(multi.length){let m=null;if(maps&&multi.length>1){try{m=await fullMatrix([origin,...multi.map(o=>cleanAddressForMaps(o.address)||o.name)])}catch(e){m=null}}route=optimize(multi,m||fallbackMatrix(multi.length+1),t2m(S.departTime)||480)}plan={p2p,route,mapsReady:maps,depotName:depot.name,generatedAt:new Date().toISOString()};save();renderAll();showView('planning');note.textContent=maps?'Plan generated with Maps traffic.':'Plan generated with estimated driving time.';try{await cloudSaveNow()}catch(e){console.warn('Cloud save skipped',e)}}catch(e){alert('Planning failed: '+e.message);note.textContent='Planning error'}finally{btn.disabled=false;btn.textContent='Generate Plan'}}
 function items(){return plan?[...(plan.p2p||[]),...(plan.route||[])]:[]}function p2pItems(){return plan?(plan.p2p||[]):[]}function dropbyItems(){return plan?(plan.route||[]):[]}function mapItems(){let r=dropbyItems().filter(o=>currentStatus(o)!=='Delivered');if(!r.length)r=dropbyItems();if(r.length)return r;let p=p2pItems().filter(o=>currentStatus(o)!=='Delivered');return p.length?[p[0]]:p2pItems().slice(0,1)}function routeParts(list=mapItems()){let depot=S.depots[S.depotIdx]||S.depots[0],origin=depot.addr||depot.name||'Jakarta',stops=list.map(o=>cleanAddressForMaps(o.address)||o.name).filter(Boolean),destination=stops[stops.length-1]||origin,waypoints=stops.slice(0,-1);return{origin,stops,destination,waypoints}}function routeUrl(list=mapItems()){let p=routeParts(list),parts=[p.origin,...p.stops].filter(Boolean);return parts.length>1?'https://www.google.com/maps/dir/'+parts.map(encodeURIComponent).join('/'):'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(parts[0]||'')}function mapEmbedUrl(list=mapItems()){let p=routeParts(list);if(p.stops.length)return 'https://maps.google.com/maps?saddr='+encodeURIComponent(p.origin)+'&daddr='+encodeURIComponent([...p.waypoints,p.destination].join(' to: '))+'&output=embed';return 'https://maps.google.com/maps?q='+encodeURIComponent(p.origin)+'&output=embed'}function urg(o,now=baseMin()){let st=currentStatus(o);if(st==='Delivered')return'done';if(o.latestCall==null)return'safe';let r=o.latestCall-now;if(r<30)return'urgent';if(r<90)return'soon';return'safe'}function card(o,i,now=baseMin(),showMode=false){let status=currentStatus(o),u=urg(o,now),remain=o.latestCall!=null?o.latestCall-now:null,bar=o.latestCall!=null&&t2m(o.closeTime)!=null?Math.max(0,Math.min(100,remain/(t2m(o.closeTime)-now+1)*100)):100,drive=o.transit!=null?`Drive <strong>${o.transit} min</strong>${o.dist!=null?' - '+o.dist+' km':''}${o.fallback?' (estimated)':''}`:'No drive time';return`<div class="dispatch-card card ${u}"><div class="rank ${u}">${i+1}</div><div><div class="line"><span class="name">${esc(o.name||'Unnamed customer')}</span>${o.orderNo?'<span class="badge">'+esc(o.orderNo)+'</span>':''}${statusPill(status)}${showMode?'<span class="badge">'+esc(o.mode||'Point-to-Point')+'</span>':''}</div><div class="addr">${esc(cleanAddressForMaps(o.address)||'Address missing')}</div><div class="stats"><span>${drive}</span><span>Close <strong>${esc(o.closeTime||'-')}</strong></span><span>Latest Call <strong>${o.latestCall!=null?m2t(o.latestCall):'-'}</strong></span><span>${remain==null?'No close time':remain<0?'Overdue':`Remaining ${remain>=60?Math.floor(remain/60)+'h ':''}${remain%60}m`}</span></div><div class="progress"><span style="width:${bar}%;background:${u==='safe'?'var(--ok)':u==='soon'?'var(--warn)':'var(--err)'}"></span></div></div></div>`}function fallbackTask(o){let cl=t2m(o.closeTime),transit=30;return {...o,mode:normalizeMode(o.mode),transit:null,latestCall:cl!=null?cl-(S.pickupMin||20)-transit:null,fallback:true}}function p2pQueue(){let source=plan?p2pItems():S.orders.filter(o=>!isDropBy(o)).map(fallbackTask),now=baseMin();return source.map((o,i)=>({...o,mode:'Point-to-Point',remain:o.latestCall!=null?o.latestCall-now:null,urg:urg(o,now),sourceIndex:i})).sort((a,b)=>(currentStatus(a)==='Delivered')-(currentStatus(b)==='Delivered')||((a.remain??9999)-(b.remain??9999)))}function dropbyQueue(){let source=plan?dropbyItems():S.orders.filter(isDropBy).map(fallbackTask),now=baseMin();return source.map((o,i)=>({...o,mode:'Drop-by',remain:o.latestCall!=null?o.latestCall-now:null,urg:urg(o,now),sourceIndex:i}))}function queue(){return[...p2pQueue(),...dropbyQueue()]}function planStop(o,i,type='p2p'){let st=currentStatus(o),done=statusKey(st)==='delivered',u=urg(o),time=type==='route'&&o.arr!=null?'Arrive <strong>'+m2t(o.arr)+'</strong>':o.latestCall!=null?'Latest Call <strong>'+m2t(o.latestCall)+'</strong>':'No close time',drive=type==='route'&&o.trav!=null?'Leg '+o.trav+' min':o.transit!=null?'Depot trip '+o.transit+' min'+(o.dist!=null?' - '+o.dist+' km':''):'Drive estimate unavailable',close=o.closeTime?'Close '+esc(o.closeTime):'No close time',action=type==='p2p'?'<a href="'+attr(routeUrl([o]))+'" target="_blank"><button>Open P2P Map</button></a>':'';return`<div class="plan-stop ${done?'done':''}"><div class="route-num ${u==='urgent'?'late':u==='soon'?'warn':''}">${i+1}</div><div class="plan-stop-main"><strong>${esc(o.name||'Unnamed customer')}</strong><div class="muted">${esc(cleanAddressForMaps(o.address)||'Address missing')}</div><div class="map-note">${esc(drive)} - ${close}</div></div><div class="plan-time">${statusPill(st)}<div>${time}</div>${action}</div></div>`}function renderPlan(){let tools=document.getElementById('route-tools'),alert=document.getElementById('plan-alert'),p2p=document.getElementById('p2p-list'),route=document.getElementById('route-list'),sum=document.getElementById('route-summary');if(!plan){tools.innerHTML='';alert.innerHTML='<div class="empty">No plan yet. Add orders, then generate a plan.</div>';p2p.innerHTML='';route.innerHTML='';if(sum)sum.innerHTML='<h3>Plan Summary</h3><div class="muted">Generate a plan to see route totals and the next call window.</div>';return}let all=items(),active=all.filter(o=>currentStatus(o)!=='Delivered'),driveTotal=all.reduce((n,o)=>n+Number(o.transit||o.trav||0),0),first=active.filter(o=>o.latestCall!=null).sort((a,b)=>a.latestCall-b.latestCall)[0]||active[0],now=baseMin();tools.innerHTML=`<div class="route-tools box"><div><strong>Route Plan</strong><div class="muted">Point-to-point orders are independent trips. Drop-by is one chained route.</div></div><span class="badge">${(plan.p2p||[]).length} P2P / ${(plan.route||[]).length} Drop-by</span></div>`;if(sum)sum.innerHTML=`<h3>Plan Summary</h3><div class="summary-grid"><div class="summary-cell"><b>${(plan.p2p||[]).length}</b><span>P2P trips</span></div><div class="summary-cell"><b>${(plan.route||[]).length}</b><span>Drop-by stops</span></div><div class="summary-cell"><b>${driveTotal||'-'}</b><span>Drive min</span></div><div class="summary-cell"><b>${plan.mapsReady?'Maps':'Est.'}</b><span>Timing source</span></div></div><div class="map-note">Depot: ${esc(plan.depotName||S.depots[S.depotIdx]?.name||'Depot')}</div>${first?'<div class="map-note">Next window: '+esc(first.name||first.orderNo||'Stop')+(first.latestCall!=null?' before '+m2t(first.latestCall):'')+'</div>':''}`;alert.innerHTML=first?((first.latestCall!=null&&first.latestCall-now<0)?`<div class="alert err"><strong>${esc(first.name)}</strong> is overdue. Latest call was ${m2t(first.latestCall)}.</div>`:(first.latestCall!=null&&first.latestCall-now<30)?`<div class="alert err">Next urgent order: <strong>${esc(first.name)}</strong>. Call before ${m2t(first.latestCall)}.</div>`:`<div class="alert ok">Route ready. Next stop: <strong>${esc(first.name||first.orderNo||'Stop')}</strong>${first.latestCall!=null?' - latest call '+m2t(first.latestCall):''}.</div>`):'<div class="alert ok">All planned stops are delivered.</div>';let p=plan.p2p||[];p2p.innerHTML=p.length?`<div class="route-section box"><div class="route-head"><div><strong>Point-to-point Plan</strong> <span class="badge">${p.length} stops</span><div class="muted">Each stop is an independent depot-to-customer trip.</div></div></div><div class="plan-list">${p.map((o,i)=>planStop(o,i,'p2p')).join('')}</div></div>`:'';let r=plan.route||[];route.innerHTML=r.length?`<div class="route-section box"><div class="route-head"><div><strong>Drop-by Route</strong> <span class="badge">${r.length} stops</span><div class="muted">One chained run. Depart ${S.departTime} - Finish ${m2t(r[r.length-1].lv)}</div></div><a href="${routeUrl(r)}" target="_blank"><button>Maps Navigation</button></a></div><div class="plan-list">${r.map((o,i)=>planStop(o,i,'route')).join('')}</div></div>`:''}function renderDispatch(){let p=p2pQueue(),r=dropbyQueue(),html='';if(p.length)html+=`<div class="route-section box"><div class="route-head"><div><strong>Point-to-point Dispatch</strong> <span class="badge">${p.length} trips</span><div class="muted">Independent trips sorted by latest call time.</div></div></div><div class="list" style="padding:10px">${p.map((o,i)=>card(o,i,baseMin(),true)).join('')}</div></div>`;if(r.length)html+=`<div class="route-section box"><div class="route-head"><div><strong>Drop-by Run</strong> <span class="badge">${r.length} stops</span><div class="muted">Fixed route order. Status updates do not reorder the chain.</div></div><a href="${routeUrl(r)}" target="_blank"><button>Maps Navigation</button></a></div><div class="list" style="padding:10px">${r.map((o,i)=>card(o,i,baseMin(),true)).join('')}</div></div>`;document.getElementById('dispatch-board').innerHTML=html||'<div class="empty">No dispatch work yet - add orders first.</div>'}function renderMap(){let a=document.getElementById('map-actions'),m=document.getElementById('map'),all=items(),shown=mapItems(),hasDrop=dropbyItems().length>0;if(!all.length){a.innerHTML='';m.innerHTML='<div class="map-placeholder">Generate a plan to show route tools.</div>';return}a.innerHTML=`<div><strong>${hasDrop?'Drop-by route map':'Point-to-point preview'}</strong><div class="muted">${hasDrop?'Map shows the chained Drop-by route only.':'P2P is independent; map shows the next open trip only.'}</div></div><a href="${routeUrl(shown)}" target="_blank"><button>${hasDrop?'Open Drop-by Route':'Open P2P Route'}</button></a>`;m.innerHTML='<iframe title="Route map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="'+attr(mapEmbedUrl(shown))+'"></iframe>'}
@@ -163,10 +164,139 @@ function libraryDocId(o){
 }
 function libraryRange(){
   const center=S.date||today();
-  return {start:addDays(center,-2),end:addDays(center,2)};
+  return {start:center,end:center};
 }
 function orderLibraryRef(){
   return firebase.firestore().collection('orderLibrary');
+}
+function orderDatabaseRef(){
+  return firebase.firestore().collection('orderDatabase');
+}
+function orderDocId(o){
+  const key=o?.sourceId||o?.docId||o?.orderNo||o?.doNo||o?.id||('manual-'+Date.now());
+  return String(key).replace(/[\/#[\].]/g,'_');
+}
+function orderIdentity(o){
+  return String(o?.sourceId||o?.docId||o?.orderNo||o?.doNo||'').trim().toLowerCase();
+}
+function hasBackorder(o){
+  const text=[o?.deliveryStatus,o?.status,o?.sheetStatus,o?.notes,o?.items].join(' ').toLowerCase();
+  return /\b(back[\s-]?order|bo|indent|out of stock)\b/i.test(text);
+}
+function statusFromSheet(o){
+  const text=[o?.sheetStatus,o?.status,o?.notes].join(' ').toLowerCase();
+  if(hasBackorder(o))return 'Backorder';
+  if(/deliver|complete|done|finish/.test(text))return 'Delivered';
+  if(/fail|cancel|reschedule/.test(text))return 'Failed / Reschedule';
+  if(/picked|pickup/.test(text))return 'Picked up';
+  if(/called|call/.test(text))return 'Called';
+  if(/prepar|ready/.test(text))return 'Preparing';
+  return 'Pending';
+}
+function databasePayload(o,previous={},date=S.date||today()){
+  const status=o.deliveryStatus||o.status||previous.deliveryStatus||statusFromSheet(o);
+  return {
+    ...previous,
+    ...o,
+    docId:orderDocId(o),
+    sourceId:o.sourceId||o.docId||previous.sourceId||'',
+    orderNo:o.orderNo||previous.orderNo||o.sourceId||o.docId||'',
+    customer:o.customer||o.name||previous.customer||'',
+    name:o.name||o.customer||previous.name||'',
+    deliveryDate:o.deliveryDate||previous.deliveryDate||date,
+    deliveryStatus:status,
+    status:status,
+    notes:o.notes!==undefined?o.notes:(previous.notes||''),
+    backorder:hasBackorder({...previous,...o,deliveryStatus:status}),
+    lastImportedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+async function upsertOrderDatabase(o,date=S.date||today()){
+  const docId=orderDocId(o);
+  const ref=orderDatabaseRef().doc(docId);
+  const snap=await ref.get({source:'server'});
+  const previous=snap.exists?snap.data():{};
+  const payload=databasePayload(o,previous,date);
+  await ref.set(payload,{merge:false});
+  return payload;
+}
+function dispatchOrderFromAny(o,targetDate=S.date||today()){
+  const status=o.deliveryStatus||o.status||statusFromSheet(o);
+  return {
+    id:uid(),
+    sourceId:o.sourceId||o.docId||'',
+    orderNo:o.orderNo||o.sourceId||o.docId||'',
+    name:o.customer||o.name||'',
+    phone:o.phone||'',
+    address:o.address||'',
+    mapsUrl:o.mapsUrl||'',
+    items:o.items||'',
+    qty:o.qty||'',
+    payment:o.payment||'',
+    notes:o.notes||'',
+    closeTime:o.closeTime||'',
+    serviceMin:Number(o.serviceMin)||15,
+    priority:o.priority||'Medium',
+    mode:normalizeMode(o.mode||'Point-to-Point'),
+    status,
+    deliveryDate:targetDate,
+    statusHistory:o.statusHistory||[]
+  };
+}
+function mergeDispatchOrders(existing,incoming,targetDate){
+  const byKey=new Map();
+  existing.forEach((o,i)=>{
+    const key=orderIdentity(o)||('row-'+i);
+    if(!byKey.has(key))byKey.set(key,o);
+  });
+  let added=0,updated=0,skippedDelivered=0;
+  incoming.forEach(src=>{
+    const key=orderIdentity(src);
+    if(!key)return;
+    const converted=dispatchOrderFromAny(src,targetDate);
+    const found=byKey.get(key);
+    if(found){
+      if(found.status==='Delivered'&&converted.status!=='Delivered'){
+        skippedDelivered++;
+        return;
+      }
+      const incomingFinal=['Backorder','Delivered','Failed / Reschedule'].includes(converted.status);
+      const keepProgress=found.status&&!['Pending','Backorder'].includes(found.status)&&!incomingFinal;
+      Object.assign(found,{...converted,id:found.id,status:keepProgress?found.status:converted.status,statusHistory:found.statusHistory||converted.statusHistory});
+      updated++;
+    }else{
+      existing.push(converted);
+      byKey.set(key,converted);
+      added++;
+    }
+  });
+  const seen=new Set();
+  for(let i=existing.length-1;i>=0;i--){
+    const key=orderIdentity(existing[i])||('manual-'+existing[i].id);
+    if(seen.has(key))existing.splice(i,1);
+    else seen.add(key);
+  }
+  return {added,updated,skippedDelivered};
+}
+async function syncOrderDatabaseFromDispatch(o){
+  if(!cloudReady||!o)return;
+  try{
+    const payload=await upsertOrderDatabase({...o,deliveryDate:S.date||today(),deliveryStatus:o.status||'Pending'},S.date||today());
+    await orderLibraryRef().doc(payload.docId).set({
+      deliveryStatus:payload.deliveryStatus,
+      status:payload.deliveryStatus,
+      notes:payload.notes||'',
+      backorder:payload.backorder,
+      libraryStatus:payload.deliveryStatus==='Delivered'?'Delivered':'Added',
+      assignedDate:S.date||today(),
+      lastStatusSyncAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    setSync('Order DB: status saved','ok');
+  }catch(e){
+    console.warn('Order database sync failed',e);
+    setSync('Order DB: sync failed','err');
+  }
 }
 async function loadOrderLibrary(){
   if(!cloudReady){alert('Cloud is not ready.');return}
@@ -197,8 +327,8 @@ function renderLibrary(){
   if(cnt)cnt.textContent=LIB.length+' orders';
   if(!body||!mob)return;
   if(!LIB.length){
-    body.innerHTML='<tr><td colspan="11" class="empty">No imported orders in the selected ±2 day range.</td></tr>';
-    mob.innerHTML='<div class="empty">No imported orders in the selected ±2 day range.</div>';
+    body.innerHTML='<tr><td colspan="11" class="empty">No imported orders for the selected date.</td></tr>';
+    mob.innerHTML='<div class="empty">No imported orders for the selected date.</div>';
     return;
   }
   body.innerHTML=LIB.map((o,i)=>{
@@ -213,7 +343,7 @@ function renderLibrary(){
       <td>${esc(o.items||'')}</td>
       <td>${esc(o.qty||'')}</td>
       <td>${esc(o.payment||'')}</td>
-      <td>${esc(o.libraryStatus||'Imported')}${o.assignedDate?' → '+esc(o.assignedDate):''}</td>
+      <td>${statusPill(o.deliveryStatus||o.status||o.libraryStatus||'Imported')}${hasBackorder(o)?' <span class="badge">Backorder</span>':''}${o.assignedDate?' → '+esc(o.assignedDate):''}</td>
       <td><button onclick="addOneLibraryOrderToDate('${attr(o.docId)}')">Add</button></td>
     </tr>`;
   }).join('');
@@ -228,31 +358,13 @@ function renderLibrary(){
       <div class="muted">Address: ${addressHtmlSafe(o.address||'-',o.mapsUrl||'')}</div>
       <div class="muted">Items: ${esc(o.items||'-')}</div>
       <div class="muted">Qty: ${esc(o.qty||'-')} · Payment: ${esc(o.payment||'-')}</div>
-      <div class="muted">Library Status: ${esc(o.libraryStatus||'Imported')}${o.assignedDate?' → '+esc(o.assignedDate):''}</div>
+      <div class="muted">Status: ${esc(o.deliveryStatus||o.status||o.libraryStatus||'Imported')}${hasBackorder(o)?' · Backorder':''}${o.assignedDate?' → '+esc(o.assignedDate):''}</div>
       <div class="lib-actions"><button onclick="addOneLibraryOrderToDate('${attr(o.docId)}')">Add to Date</button></div>
     </div>`;
   }).join('');
 }
 function libraryOrderToDispatchOrder(o){
-  return {
-    id:uid(),
-    sourceId:o.sourceId||o.docId||'',
-    orderNo:o.orderNo||o.sourceId||o.docId||'',
-    name:o.customer||o.name||'',
-    phone:o.phone||'',
-    address:o.address||'',
-    mapsUrl:o.mapsUrl||'',
-    items:o.items||'',
-    qty:o.qty||'',
-    payment:o.payment||'',
-    notes:o.notes||'',
-    closeTime:o.closeTime||'',
-    serviceMin:Number(o.serviceMin)||15,
-    priority:o.priority||'Medium',
-    mode:normalizeMode(o.mode||'Point-to-Point'),
-    status:'Pending',
-    statusHistory:[]
-  };
+  return dispatchOrderFromAny(o);
 }
 async function addLibraryOrdersToDate(docIds,targetDate){
   if(!cloudReady){alert('Cloud is not ready.');return}
@@ -266,23 +378,12 @@ async function addLibraryOrdersToDate(docIds,targetDate){
     const snap=await ref.get({source:'server'});
     let doc=snap.exists?snap.data():{date:targetDate,orders:[],nid:1,depots:S.depots,depotIdx:S.depotIdx,trafficTime:S.trafficTime,pickupMin:S.pickupMin,departTime:S.departTime,apiKey:S.apiKey};
     let existing=Array.isArray(doc.orders)?doc.orders:[];
-    let added=0,updated=0,skippedDelivered=0;
+    const stats=mergeDispatchOrders(existing,selected,targetDate);
+    let added=stats.added,updated=stats.updated,skippedDelivered=stats.skippedDelivered;
     for(const lib of selected){
-      const sourceId=lib.sourceId||lib.docId;
-      const found=existing.find(o=>String(o.sourceId||'')===String(sourceId));
-      if(found){
-        if(found.status==='Delivered'){
-          skippedDelivered++;
-        }else{
-          const converted=libraryOrderToDispatchOrder(lib);
-          Object.assign(found,{...converted,id:found.id,status:found.status,statusHistory:found.statusHistory||[]});
-          updated++;
-        }
-      }else{
-        existing.push(libraryOrderToDispatchOrder(lib));
-        added++;
-      }
-      await orderLibraryRef().doc(lib.docId).set({libraryStatus:'Added',assignedDate:targetDate,lastAddedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      const status=lib.deliveryStatus||lib.status||statusFromSheet(lib);
+      await upsertOrderDatabase({...lib,deliveryStatus:status,deliveryDate:targetDate},targetDate);
+      await orderLibraryRef().doc(lib.docId).set({libraryStatus:'Added',assignedDate:targetDate,deliveryStatus:status,status,notes:lib.notes||'',backorder:hasBackorder(lib),lastAddedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
     }
     doc.orders=existing;
     doc.nid=Math.max(Number(doc.nid)||1,S.nid,1,...existing.map(o=>Number(o.id)||0))+1;
@@ -405,37 +506,68 @@ function normalizeSheetOrder(raw) {
     return '';
   };
 
-  const address = g('address', 'Address');
-  const wantedBy = g('deliveryDate', 'Delivery Date', 'wantedBy', 'Wanted By', 'Wanted by');
+  const address = g('address', 'Address', '地址', '送货地址', '配送地址');
+  const wantedBy = g('deliveryDate', 'Delivery Date', 'wantedBy', 'Wanted By', 'Wanted by', 'Date', 'date', '日期', '送货日期', '配送日期', '运输日期');
 
   return {
-    sourceId: g('sourceId', 'Source ID', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #', 'orderNo') || ('SHEET-' + Date.now()),
-    orderNo: g('orderNo', 'Order No.', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #'),
-    deliveryDate: toYmdFromAny(wantedBy || g('Date', 'date')),
+    sourceId: g('sourceId', 'Source ID', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #', 'orderNo', '订单号', '订单编号', '单号', 'DO编号') || ('SHEET-' + Date.now()),
+    orderNo: g('orderNo', 'Order No.', '#', 'Req #', 'Request #', 'DO # ← auto', 'DO #', '订单号', '订单编号', '单号', 'DO编号'),
+    deliveryDate: toYmdFromAny(wantedBy),
     workshopType: g('workshopType', 'Workshop Type'),
     dealer: g('dealer', 'Dealer'),
     salesperson: g('salesperson', 'Salesperson'),
-    customer: g('customer', 'Customer Name', 'Customer'),
-    name: g('customer', 'Customer Name', 'Customer'),
-    phone: g('phone', 'Customer Phone Number', 'Customer Phone', 'Phone'),
+    customer: g('customer', 'Customer Name', 'Customer', '客户', '客户名', '客户名称'),
+    name: g('customer', 'Customer Name', 'Customer', '客户', '客户名', '客户名称'),
+    phone: g('phone', 'Customer Phone Number', 'Customer Phone', 'Phone', '电话', '手机号', '客户电话'),
     address: address,
     mapsUrl: g('mapsUrl', 'Maps URL') || extractFirstUrlSafe(address),
-    items: g('items', 'Product(s)', 'Products', 'Item(s) Ordered and Qty'),
-    qty: g('qty', 'Qty', 'Quantity'),
-    payment: g('payment', 'Payment Method (COD, TOP 30/60 etc.)', 'Payment Method'),
-    notes: g('notes', 'Notes'),
-    closeTime: g('closeTime', 'Close Time') || '',
+    items: g('items', 'Product(s)', 'Products', 'Item(s) Ordered and Qty', '产品', '商品', '订购产品', '货品'),
+    qty: g('qty', 'Qty', 'Quantity', '数量'),
+    payment: g('payment', 'Payment Method (COD, TOP 30/60 etc.)', 'Payment Method', '付款', '付款方式'),
+    notes: g('notes', 'Notes', 'Note', 'remarks', 'Remarks', 'Remark', '备注'),
+    closeTime: g('closeTime', 'Close Time', '截止时间') || '',
     serviceMin: Number(g('serviceMin', 'Service Min')) || 15,
     priority: g('priority', 'Priority') || 'Medium',
     mode: normalizeMode(g('mode', 'Mode') || 'Point-to-Point'),
-    sheetStatus: g('sheetStatus', 'Status ← auto', 'Status'),
-    doNo: g('doNo', 'DO # ← auto', 'DO #')
+    sheetStatus: g('sheetStatus', 'Status ← auto', 'Status', '运送状态', '运输状态', '配送状态', '状态'),
+    doNo: g('doNo', 'DO # ← auto', 'DO #', 'DO编号')
   };
 }
 
+function sheetFetchUrl(source,start,end){
+  source=String(source||'').trim();
+  const id=(source.match(/\/spreadsheets\/d\/([^/]+)/)||[])[1];
+  if(id){
+    const gid=(source.match(/[?&#]gid=(\d+)/)||[])[1]||'0';
+    return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  }
+  return source+(source.includes('?')?'&':'?')+'start='+encodeURIComponent(start)+'&end='+encodeURIComponent(end);
+}
+function rowsFromCsv(text){
+  const lines=String(text||'').split(/\r?\n/).filter(x=>x.trim());
+  if(!lines.length)return [];
+  const header=parseCsv(lines[0]).map(x=>x.trim());
+  return lines.slice(1).map(line=>{
+    const vals=parseCsv(line),row={};
+    header.forEach((h,i)=>row[h]=vals[i]||'');
+    return row;
+  });
+}
+async function fetchSheetRows(start,end){
+  const url=sheetFetchUrl(S.sheetApiUrl,start,end);
+  const resp=await fetch(url);
+  if(!resp.ok)throw new Error('Sheet source returned HTTP '+resp.status);
+  const text=await resp.text();
+  try{
+    const data=JSON.parse(text);
+    return Array.isArray(data)?data:(data.orders||[]);
+  }catch(e){
+    return rowsFromCsv(text);
+  }
+}
 async function importSheetOrdersToLibrary() {
   if (!S.sheetApiUrl) {
-    alert('Please set Google Sheet Import API URL in Settings first.');
+    alert('Please set Google Sheet source in Settings first.');
     return;
   }
 
@@ -445,71 +577,90 @@ async function importSheetOrdersToLibrary() {
   }
 
   const r = libraryRange();
+  const targetDate = S.date || today();
 
-  if (!confirm(`Import Google Sheet orders into Order Library from ${r.start} to ${r.end}?`)) {
+  if (!confirm(`Import Google Sheet orders for selected date ${targetDate}?\nOrders will be saved to Order Database and added to this dispatch date.`)) {
     return;
   }
 
   try {
-    setSync('Sheet → Library: loading...');
+    setSync('Sheet → Database: loading...');
 
-    const url = S.sheetApiUrl
-      + (S.sheetApiUrl.includes('?') ? '&' : '?')
-      + 'start=' + encodeURIComponent(r.start)
-      + '&end=' + encodeURIComponent(r.end);
-
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('Apps Script returned HTTP ' + resp.status);
-
-    const data = await resp.json();
-    const rows = Array.isArray(data) ? data : (data.orders || []);
-
-    let imported = 0;
-    let updated = 0;
+    const rows = await fetchSheetRows(r.start,r.end);
+    const unique = new Map();
     let invalid = 0;
+    let duplicates = 0;
 
     for (const raw of rows) {
       const o = normalizeSheetOrder(raw);
-
-      if (!o.deliveryDate || o.deliveryDate < r.start || o.deliveryDate > r.end) {
+      if (!o.deliveryDate || o.deliveryDate !== targetDate) {
         invalid++;
         continue;
       }
+      const docId = orderDocId(o);
+      if (unique.has(docId)) duplicates++;
+      unique.set(docId,{...o,docId,sourceId:o.sourceId||docId});
+    }
 
-      const docId = libraryDocId(o);
-      const ref = orderLibraryRef().doc(docId);
-      const snap = await ref.get({ source: 'server' });
-      const previous = snap.exists ? snap.data() : {};
+    let imported = 0;
+    let updated = 0;
+    const importedOrders = [];
 
-      await ref.set({
+    for (const o of unique.values()) {
+      const status = statusFromSheet(o);
+      const dbOrder = await upsertOrderDatabase({...o,deliveryStatus:status,deliveryDate:targetDate},targetDate);
+      const libRef = orderLibraryRef().doc(dbOrder.docId);
+      const libSnap = await libRef.get({source:'server'});
+      const previous = libSnap.exists ? libSnap.data() : {};
+      await libRef.set({
         ...previous,
-        ...o,
-        docId,
-        sourceId: o.sourceId || docId,
-        libraryStatus: previous.libraryStatus || 'Imported',
+        ...dbOrder,
+        libraryStatus: dbOrder.deliveryStatus==='Delivered' ? 'Delivered' : (previous.libraryStatus||'Imported'),
         importedAt: previous.importedAt || firebase.firestore.FieldValue.serverTimestamp(),
         lastImportedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: false });
+      },{merge:false});
+      libSnap.exists ? updated++ : imported++;
+      importedOrders.push(dbOrder);
+    }
 
-      snap.exists ? updated++ : imported++;
+    const ref=firebase.firestore().collection('dispatchPlans').doc(targetDate);
+    const snap=await ref.get({source:'server'});
+    let doc=snap.exists?snap.data():{date:targetDate,orders:[],nid:1,depots:S.depots,depotIdx:S.depotIdx,trafficTime:S.trafficTime,pickupMin:S.pickupMin,departTime:S.departTime,apiKey:S.apiKey,sheetApiUrl:S.sheetApiUrl};
+    let existing=Array.isArray(doc.orders)?doc.orders:[];
+    const mergeStats=mergeDispatchOrders(existing,importedOrders,targetDate);
+    doc.orders=existing;
+    doc.nid=Math.max(Number(doc.nid)||1,S.nid,1,...existing.map(o=>Number(o.id)||0))+1;
+    doc.plan=null;
+    doc.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+    await ref.set(doc,{merge:false});
+
+    if(targetDate===S.date){
+      S.orders=existing;
+      S.nid=doc.nid;
+      plan=null;
+      saveLocal();
     }
 
     await loadOrderLibrary();
+    renderAll();
 
-    setSync('Sheet → Library: done', 'ok');
+    setSync('Sheet → Database: done', 'ok');
 
     alert(
-      `Import to Library completed (${r.start} to ${r.end})\n` +
-      `New: ${imported}\n` +
-      `Updated: ${updated}\n` +
-      `Invalid: ${invalid}\n\n` +
-      `Next: select orders in Order Library and Add Selected to Date.`
+      `Import completed for ${targetDate}\n` +
+      `Database new: ${imported}\n` +
+      `Database updated: ${updated}\n` +
+      `Added to dispatch: ${mergeStats.added}\n` +
+      `Updated in dispatch: ${mergeStats.updated}\n` +
+      `Skipped delivered: ${mergeStats.skippedDelivered}\n` +
+      `Duplicate rows removed: ${duplicates}\n` +
+      `Rows outside selected date / invalid: ${invalid}`
     );
 
   } catch (e) {
     console.error(e);
-    setSync('Sheet → Library: failed', 'err');
-    alert('Import to library failed: ' + (e.message || e));
+    setSync('Sheet → Database: failed', 'err');
+    alert('Import failed: ' + (e.message || e) + '\nIf you use a private Google Sheet link, publish an Apps Script JSON endpoint and paste that URL in Settings.');
   }
 }
 function renderOrders(){
@@ -690,16 +841,6 @@ function renderOrders(){
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
 
